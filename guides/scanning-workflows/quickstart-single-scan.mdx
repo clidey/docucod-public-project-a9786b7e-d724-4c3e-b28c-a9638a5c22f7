@@ -3,4 +3,216 @@ title: "Quickstart: Scan a Single Website"
 description: "Learn how to perform your first website screenshot scan using gowitness, configure output options, and store results in a database. Ideal for users seeking an immediate hands-on success."
 ---
 
-*This page will automatically be generated from the codebase*
+# Quickstart: Scan a Single Website with gowitness
+
+Welcome to your first step using **gowitness** to capture a web screenshot of a single URL target. This guide will walk you through scanning a website, configuring output options, and saving your results in a database for easy later review. Whether you're a security professional, auditor, or just exploring gowitness, this hands-on guide sets you up for immediate success.
+
+---
+
+## 1. What You Will Achieve
+
+- Take a screenshot of a single web URL using gowitness
+- Configure options such as screenshot format, window size, and timeout
+- Save scan metadata and screenshots into a SQLite database
+- Understand how to verify successful completion
+
+---
+
+## 2. Prerequisites
+
+Before you begin, ensure you have the following:
+
+- gowitness installed on your system. If not, install it via:
+
+  ```bash
+  go install github.com/sensepost/gowitness@latest
+  ```
+
+- Google Chrome or Chromium installed (required for headless browsing)
+- Basic familiarity with command line operations
+
+---
+
+## 3. Step-by-Step Instructions
+
+### Step 1: Prepare your command
+
+Your goal is to run the `gowitness scan single` command targeting the website URL.
+
+### Step 2: Run a basic scan
+
+Execute the following command to scan a single URL and save screenshots locally:
+
+```bash
+gowitness scan single -u https://sensepost.com
+```
+
+- The `-u` flag specifies the URL to screenshot
+- By default, only screenshots are saved in the `./screenshots` directory
+
+Expected outcome: gowitness loads the page, captures a screenshot, and saves it locally.
+
+### Step 3: Save results to a database
+
+To retain metadata along with the screenshot, use the `--write-db` flag:
+
+```bash
+gowitness scan single -u https://sensepost.com --write-db
+```
+
+- This stores results in a SQLite database (`gowitness.sqlite3` by default)
+- Screenshots still save automatically to the `./screenshots` folder
+
+### Step 4: Customize scan options
+
+You can adjust the scanning environment:
+
+- Set browser window size:
+
+  ```bash
+gowitness scan single -u https://sensepost.com --write-db --chrome-window-x 1920 --chrome-window-y 1080
+```
+
+- Change screenshot format (jpeg or png):
+
+  ```bash
+gowitness scan single -u https://sensepost.com --write-db --screenshot-format png
+```
+
+- Increase timeout if the page loads slowly:
+
+  ```bash
+gowitness scan single -u https://sensepost.com --write-db --timeout 90
+```
+
+### Step 5: Confirm scan completion
+
+Upon success, gowitness will show logs indicating the scan completion.
+
+Check the following:
+
+- Screenshot saved under `./screenshots` with the target URL hostname as filename
+- `gowitness.sqlite3` database file created or updated with scan details
+
+You can later view or query the database for full scan metadata.
+
+---
+
+## 4. Practical Examples
+
+### Example 1: Simple scan with screenshot only
+
+```bash
+gowitness scan single -u https://sensepost.com
+```
+
+Expected result: Screenshot saved as JPEG in the default folder.
+
+### Example 2: Scan with database output and timeout adjustment
+
+```bash
+gowitness scan single -u https://sensepost.com --write-db --timeout 120
+```
+
+Expected result: Metadata saved to SQLite DB; screenshot saved as JPEG.
+
+### Example 3: Scan with PNG screenshots at custom window size
+
+```bash
+gowitness scan single -u https://sensepost.com --write-db --screenshot-format png --chrome-window-x 1366 --chrome-window-y 768
+```
+
+Expected result: PNG screenshots taken at specified resolution, metadata saved.
+
+---
+
+## 5. Tips and Best Practices
+
+- **Use descriptive filenames or organize your output folder** to avoid overwriting screenshots.
+- **Increase timeout for slow or heavy websites** to prevent premature scan failures.
+- **Combine output flags for richer data**: use `--write-jsonl`, `--write-csv`, or `--write-stdout` for different use cases.
+- **Set user-agent strings** if target sites behave differently:
+
+  ```bash
+  --chrome-user-agent 'Mozilla/5.0 (Custom)'  
+  ```
+
+- **Run scans inside reliable network environments** to avoid connectivity timeouts or DNS issues.
+
+---
+
+## 6. Common Pitfalls & Troubleshooting
+
+<AccordionGroup title="Troubleshooting Single URL Scans">
+<Accordion title="1. Error: 'a URL must be specified'">
+Ensure the `-u` or `--url` flag is provided with a valid URL. Example:
+
+```bash
+gowitness scan single -u https://example.com
+```
+</Accordion>
+
+<Accordion title="2. No screenshots saved or empty output">
+- Verify that Chrome or Chromium is installed and accessible in your system PATH.
+- Check permissions on the `./screenshots` directory.
+- Use debug logging with `-D` to inspect errors:
+
+```bash
+gowitness -D scan single -u https://sensepost.com
+```
+</Accordion>
+
+<Accordion title="3. Timeout or page load failures">
+- Increase the `--timeout` value.
+- Check network restrictions or firewalls blocking access to the target URL.
+- Use `--delay` to give pages extra time before screenshotting.
+</Accordion>
+
+<Accordion title="4. Database write errors or missing DB file">
+- Confirm `--write-db` is correctly specified.
+- Check your permissions for the folder where `gowitness.sqlite3` is created.
+- Use `--write-db-uri` to specify a different database location if needed.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 7. Next Steps
+
+- Explore [Scanning Multiple Targets from Files and Lists](/guides/scanning-workflows/scanning-multiple-targets) for bulk scanning.
+- Learn about [Validating and Viewing Results](/getting-started/your-first-scan/validating-results) to inspect and manage your scans.
+- Deepen your knowledge by reviewing [Quick Configuration](/getting-started/setup-and-configuration/quick-configuration) for customizing scans.
+- For automated workflows, check [Integrating with the gowitness Web API](/guides/advanced-usage-and-integration/web-api-integration).
+
+---
+
+## 8. References
+
+- Official GitHub repo: [https://github.com/sensepost/gowitness](https://github.com/sensepost/gowitness)
+- gowitness README: [README.md](https://github.com/sensepost/gowitness/blob/main/README.md)
+- CLI reference for `scan single` [cmd/scan_single.go](https://github.com/sensepost/gowitness/blob/main/cmd/scan_single.go)
+
+---
+
+## Summary Diagram: Single URL Scan Workflow
+
+```mermaid
+flowchart TD
+  Start([Start Scan]) --> ValidateURL{Is URL Provided?}
+  ValidateURL -- No --> Error1[Show "a URL must be specified" error]
+  ValidateURL -- Yes --> InitRunner[Initialize Scan Runner]
+  InitRunner --> SendURL[Send URL to Scan Runner]
+  SendURL --> RunScan[Perform Headless Chrome Scan]
+  RunScan --> SaveSS[Save Screenshot to Storage]
+  RunScan --> SaveMeta[Save Metadata (DB/JSONL/CSV if configured)]
+  SaveSS --> Success[Scan Complete]
+  SaveMeta --> Success
+```
+
+---
+
+Congratulations on completing your first gowitness single URL scan!
+
+Keep experimenting with scan options to tailor gowitness to your workflows.
+
+# End of Guide
