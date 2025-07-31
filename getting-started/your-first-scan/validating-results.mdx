@@ -3,4 +3,151 @@ title: "Validating and Viewing Results"
 description: "Shows users how to find, inspect, and verify results—both screenshots and data—after their scan completes. Highlights CLI commands for summarizing results and accessing saved output. Points toward the web viewer for a richer experience."
 ---
 
-*This page will automatically be generated from the codebase*
+# Validating and Viewing Results
+
+This guide helps you find, inspect, and verify your scan results after running your first gowitness scan. You'll learn how to access the results both from the Command Line Interface (CLI) and the web viewer for a richer, interactive experience.
+
+---
+
+## 1. Locate Your Scan Results
+
+Once a scan completes, gowitness saves both screenshots and detailed metadata depending on your chosen output options (such as database, JSONL, or CSV files).
+
+By default, screenshots are stored in the directory configured by the `--screenshot-path` flag (e.g., `./screenshots`). Metadata and scan details will be saved only if you enabled writing to a database or output file via flags like `--write-db`, `--write-jsonl`, or `--write-csv`.
+
+### Quick Checks
+
+- Inspect the screenshot directory specified (default: `./screenshots`) for image files named after the scanned URLs.
+- Confirm the result data files (e.g., `gowitness.sqlite3` if `--write-db` was used) exist and are up to date.
+
+<Tip>
+Use the `--write-db` flag during your scan to store results and metadata in a SQLite database. This enables richer queries and future integration with the gowitness web UI.
+</Tip>
+
+---
+
+## 2. Summarize Results Using CLI Commands
+
+gowitness provides commands to quickly list and inspect the scan output, enabling you to verify success and identify any issues.
+
+### List Summary of Results
+
+Use the `gowitness report list` command to view a concise summary of all stored results. This command can read from either an SQLite database or a JSON Lines file.
+
+#### Command Examples
+
+```bash
+# List results from the database (default `gowitness.sqlite3`)
+gowitness report list --db-uri sqlite://gowitness.sqlite3
+
+# List results from a JSON Lines file
+gowitness report list --json-file ./gowitness.jsonl
+```
+
+#### What You See
+
+The list command displays:
+
+- Timestamp of when the scan probed the URL
+- Status: whether the scan failed or succeeded
+- HTTP response code
+- Original URL scanned
+- Page title (truncated for easier reading)
+- Approximate content size
+- Counts of network logs, console messages, headers, and cookies captured
+
+This table quickly surfaces scan health and completeness.
+
+### Inspect Individual Results
+
+For deeper inspection, use the CLI to access detailed information about specific results including HTTP headers, content, and metadata.
+
+- Accessing detailed fields is typically done through custom scripts querying your database or using the gowitness web viewer.
+
+<Tip>
+The CLI listing supports styling indicating HTTP status codes and failures for rapid visual review.
+</Tip>
+
+---
+
+## 3. Use CLI Commands to Access Saved Output
+
+Aside from listing, you might want to access the raw output files or JSON entries produced by the scan.
+
+Commands like `gowitness report list` help with summaries, but for programmatic access, examine the following:
+
+- **Screenshot Files**: Stored in the directory pointed by `--screenshot-path`.
+- **JSON Lines File**: Use a JSON viewer or `jq` to parse `gowitness.jsonl` if generated.
+- **SQLite Database**: Open with tools like `sqlite3` or DB Browser for SQLite to query and extract detailed scan data.
+
+<Tip>
+Always verify you have enabled appropriate output writers before scanning to ensure results are saved in your preferred location and format.
+</Tip>
+
+---
+
+## 4. Viewing Results in the Web UI
+
+For a richer, interactive browsing experience of your scan results, launch the gowitness web viewer, which pulls data from your result storage.
+
+### Steps to Access the Web Viewer
+
+1. Ensure you have a database with saved results (using `--write-db` during scan).
+2. Start the gowitness server or web UI application (refer to your installation or guides for how).
+3. Open the provided URL in your browser.
+
+The web viewer presents:
+
+- A visually rich gallery of screenshots
+- Filters by technologies detected, HTTP status codes, or scan dates
+- Detailed per-result page views showing metadata, network logs, console messages, and captured headers
+
+<Tip>
+The web viewer can dramatically improve your ability to review and triage scan outcomes, especially for large scans.
+</Tip>
+
+---
+
+## 5. Common Pitfalls & Troubleshooting
+
+- **No results found:** Confirm you enabled result writing flags (`--write-db`, `--write-jsonl`, or `--write-csv`) when running your scan.
+- **Screenshots missing:** Double-check the `--screenshot-path` location and scanning success messages.
+- **List command empty:** Verify the database or JSON file path is correct and accessible.
+- **Web UI shows no data:** Confirm the web server points to the correct database.
+
+For detailed troubleshooting, refer to the Troubleshooting Common Issues guide in the Getting Started section.
+
+---
+
+## 6. Next Steps
+
+- Use the `gowitness report list` CLI command regularly to monitor ongoing scans.
+- Explore the web viewer for detailed and visual analysis of your scan results.
+- Consider advanced filtering and searching capabilities via the API or web UI to narrow down targets.
+- Study the [Running Your First Scan](https://yourdoc.com/getting-started/your-first-scan/running-your-first-scan) page for refining scan configurations.
+
+---
+
+## Summary
+
+This page equips you to confidently validate your scan results after running gowitness. You can locate saved data and screenshots, use CLI tools to summarize outcomes, and leverage the web viewer for in-depth inspection. Together, these capabilities empower you to confirm scan success and efficiently analyze findings.
+
+---
+
+## Quick Reference CLI Commands
+
+```bash
+# List scan results from SQLite database
+gowitness report list --db-uri sqlite://gowitness.sqlite3
+
+# List scan results from JSON Lines file
+gowitness report list --json-file ./gowitness.jsonl
+```
+
+## Related Documentation
+
+- [Running Your First Scan](https://yourdoc.com/getting-started/your-first-scan/running-your-first-scan)
+- [Understanding Output Formats](https://yourdoc.com/getting-started/setup-and-configuration/understanding-output-formats)
+- [Generating and Viewing Reports (CLI and Web UI)](https://yourdoc.com/guides/reporting-and-results/generating-and-viewing-reports)
+- [Troubleshooting Common Issues](https://yourdoc.com/getting-started/your-first-scan/troubleshooting-common-issues)
+
