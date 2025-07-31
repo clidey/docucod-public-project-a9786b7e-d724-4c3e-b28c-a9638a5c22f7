@@ -3,4 +3,268 @@ title: "Installing gowitness"
 description: "Provides step-by-step installation guides for all major platforms, including Go-based installation, downloading binaries, and building from source. Also includes Docker usage and best practices for choosing install methods."
 ---
 
-*This page will automatically be generated from the codebase*
+# Installing gowitness
+
+This guide walks you through precise, step-by-step instructions to install **gowitness** on all major platforms. Whether you prefer using Go tooling, downloading precompiled binaries, building from source, or running gwitness within Docker containers, this documentation covers your scenario. You'll also find best practices to help you choose the right installation method based on your needs.
+
+---
+
+## 1. Installation Methods Overview
+
+**gowitness** can be installed in several ways:
+
+- **Go-based installation**: Use `go install` to fetch the latest version directly into your Go environment.
+- **Precompiled binaries**: Download platform-specific binary releases from GitHub.
+- **Build from source**: Compile gowitness manually for full control and customization.
+- **Docker image**: Run gowitness in a lightweight Docker container, requiring no host installation.
+
+Each method has its own advantages depending on your platform, permissions, and update preferences.
+
+---
+
+## 2. Prerequisites
+
+Before installing gowitness, ensure your environment meets these requirements:
+
+- **Operating System**: Linux, macOS, or Windows. Some Windows features may be limited but compatibility is mostly ensured.
+- **Go version** (for installation from source or via `go install`): Go 1.18 or later is required.
+- **Chrome or Chromium browser**: gowitness uses Chrome Headless for screenshots. If you don't specify a Chrome binary path, gowitness downloads a platform-appropriate headless Chrome automatically.
+- **Network permissions**: Allow gowitness to access target URLs and download dependencies if needed.
+
+Refer to the [System Requirements & Prerequisites](https://docs.sensepost.com/getting-started/getting-ready/system-requirements) for detailed platform-specific considerations.
+
+---
+
+## 3. Installing gowitness
+
+### 3.1 Using `go install` (Recommended for Go Users)
+
+This is the easiest way to get gowitness if you already have Go installed and your `$GOBIN` is in your path.
+
+1. Open a terminal.
+2. Run the command:
+
+```bash
+  go install github.com/sensepost/gowitness@latest
+```
+
+3. Confirm the binary is installed:
+
+```bash
+  gowitness version
+```
+
+Expected output displays the current gowitness version, confirming a successful installation.
+
+<Check>
+If the command is not found, verify that `$GOBIN` (often `$GOPATH/bin`) is in your system `PATH`.
+</Check>
+
+### 3.2 Downloading Precompiled Binaries
+
+1. Visit the [gowitness Releases](https://github.com/sensepost/gowitness/releases) page on GitHub.
+2. Find the latest stable release.
+3. Download the appropriate binary for your OS and architecture (e.g., `gowitness-linux-amd64`, `gowitness-darwin-arm64.exe`, etc).
+4. Make the binary executable (Linux/macOS):
+
+```bash
+chmod +x gowitness-linux-amd64
+```
+
+5. Move it to a directory in your system PATH, for example:
+
+```bash
+sudo mv gowitness-linux-amd64 /usr/local/bin/gowitness
+```
+
+6. Verify installation:
+
+```bash
+gowitness version
+```
+
+### 3.3 Build From Source
+
+For power users or contributors who want custom builds:
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/sensepost/gowitness.git
+cd gowitness
+```
+
+2. Ensure Go 1.18+ is installed.
+3. Run the Makefile build command (builds binaries for multiple platforms):
+
+```bash
+make build
+```
+
+4. The compiled binaries will be located in the `build/` folder.
+
+5. Copy the relevant binary to your PATH.
+
+<Tip>
+Check the Makefile for cross-compilation options and dependencies. Running `make clean` removes old build artifacts.
+</Tip>
+
+### 3.4 Using the Official Docker Container
+
+If you prefer not to install anything directly, run gowitness inside Docker:
+
+1. Ensure Docker is installed and running.
+2. Pull the latest image:
+
+```bash
+docker pull ghcr.io/sensepost/gowitness:latest
+```
+
+3. Run gowitness scanning commands inside the container:
+
+```bash
+docker run --rm -v $(pwd):/data ghcr.io/sensepost/gowitness scan single --url "https://sensepost.com" --write-db
+```
+
+Mount volumes to save screenshots and reports outside the container.
+
+<Note>
+Adjust volume mounts (`-v`) paths to match your local directory structure when using Docker.
+</Note>
+
+---
+
+## 4. Post-installation Verification
+
+After installation, verify that gowitness is ready to use:
+
+1. Open a terminal.
+2. Run:
+
+```bash
+gowitness version
+```
+
+You should see output similar to:
+
+```
+gowitness
+
+gowitness: vX.X.X
+git hash: <hash>
+build env: <env>
+build time: <time>
+```
+
+3. Try running a basic scan command:
+
+```bash
+gowitness scan single --url "https://example.com" --write-db
+```
+
+4. Confirm no errors occur and screenshots save to `./screenshots` by default.
+
+<Warning>
+If you encounter errors such as missing Chrome or permission denied, refer to troubleshooting tips below.
+</Warning>
+
+---
+
+## 5. Choosing the Best Installation Method
+
+Select your installation approach based on:
+
+| Use Case                           | Recommended Installation Method      |
+|-----------------------------------|-------------------------------------|
+| Quick start on supported platform | `go install` or Precompiled Binary  |
+| Custom builds or contributions    | Build from source                    |
+| Containerized, isolated usage     | Docker container                    |
+| No Go environment available       | Download binary or Docker           |
+
+Remember that the `go install` approach requires Go 1.18+, while Docker works independently of your OS setup.
+
+---
+
+## 6. Troubleshooting Common Installation Issues
+
+<AccordionGroup title="Installation Troubleshooting">
+<Accordion title="gowitness command not found after go install">
+Verify that your Go binary path (`$GOBIN` or `$GOPATH/bin`) is added to your system `PATH`. You can add it temporarily with:
+
+```bash
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+Consider adding it permanently in your shell profile.
+</Accordion>
+<Accordion title="Permission denied when executing gowitness binary">
+Make sure the binary has execute permissions:
+
+```bash
+chmod +x /path/to/gowitness
+```
+
+If running on Windows, ensure your antivirus is not blocking execution.
+</Accordion>
+<Accordion title="Chrome/Chromium not found errors">
+If gowitness cannot find Chrome, specify the path manually using the `--chrome-path` flag in your commands, or install Chrome/Chromium on your system.
+
+Example:
+
+```bash
+gowitness scan single --url "https://example.com" --chrome-path "/usr/bin/google-chrome"
+```
+</Accordion>
+<Accordion title="Docker permission denied or volume mounting issues">
+Ensure Docker daemon is running and you have permissions to mount volumes. Use absolute paths for volume mounts.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 7. Additional Resources and Next Steps
+
+- Explore the [System Requirements & Prerequisites](https://docs.sensepost.com/getting-started/getting-ready/system-requirements) page to ensure complete environment readiness.
+- Once installed, try the [Running Your First Scan](https://docs.sensepost.com/getting-started/your-first-scan/running-your-first-scan) guide.
+- Visit the [Quick Configuration](https://docs.sensepost.com/getting-started/setup-and-configuration/quick-configuration) page to fine-tune gowitness for your needs.
+- Review [Choosing Output Formats and Storing Results](https://docs.sensepost.com/guides/reporting-and-results/output-formats-best-practices) for maximizing report utility.
+
+For detailed commands and flags, run:
+
+```bash
+gowitness -h
+```
+
+or view the GitHub repository at [https://github.com/sensepost/gowitness](https://github.com/sensepost/gowitness).
+
+---
+
+### Example: Installing and Running a Simple Scan
+
+```bash
+# Install using go install
+ go install github.com/sensepost/gowitness@latest
+
+# Verify installation
+ gowitness version
+
+# Run a single scan and write output to database
+ gowitness scan single --url "https://sensepost.com" --write-db
+```
+
+---
+
+With this installation complete, you're ready to leverage gowitness for fast, reliable web screenshotting and in-depth reconnaissance.
+
+
+---
+
+### About this Page
+
+This page is part of the "Getting Started" documentation set and focuses specifically on installing gowitness across platforms. For broader context, consider browsing related pages like system requirements, initial configuration, and your first scan workflow.
+
+---
+
+### Source
+
+<Source url="https://github.com/sensepost/gowitness" branch="main" paths={[{"path": "Makefile", "range": "1-55"}]} />
