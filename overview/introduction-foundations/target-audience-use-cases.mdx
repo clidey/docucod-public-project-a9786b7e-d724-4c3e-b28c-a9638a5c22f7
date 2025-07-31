@@ -3,4 +3,127 @@ title: "Who Should Use gowitness (and When)?"
 description: "Get clarity on gowitness's intended users—security professionals, penetration testers, bug bounty hunters, and IT teams—along with the core scenarios where bulk web screenshotting, audit logging, and centralized reporting are most impactful."
 ---
 
-*This page will automatically be generated from the codebase*
+# Who Should Use gowitness (and When)?
+
+Discover whether gowitness is the right fit for your security workflow by understanding its ideal users and core use cases. Whether you're a security professional, penetration tester, bug bounty hunter, or part of an IT team, gowitness unlocks powerful capabilities to accelerate and deepen your web reconnaissance efforts.
+
+---
+
+## Introduction
+
+gowitness is designed with a clear mission: to provide fast, accurate bulk web screenshotting alongside rich metadata capture and centralized reporting. This page clarifies who benefits most from gowitness and scenarios where it shines brightest.
+
+By understanding gowitness's typical users and use cases, you’ll see how to seamlessly integrate it into your assessment and monitoring processes — saving time, uncovering hidden web assets, and enhancing reporting quality.
+
+
+## Target Users
+
+### Security Professionals & Penetration Testers
+
+If your role involves comprehensive web application assessments, gowitness rapidly delivers visual proofs of vulnerable or interesting web assets. It helps you:
+
+- Bulk capture screenshots to create audit evidence.
+- Gain context on site technologies for targeted exploitation.
+- Save detailed logs (console, network, headers) for deeper analysis.
+
+This means less manual browsing and faster documentation.
+
+### Bug Bounty Hunters
+
+When hunting for bugs, gowitness empowers you to quickly visualize numerous targets and filter by findings.
+
+- Automated takes and galleries let you spot anomalies or changes over time.
+- Use search operators to rapidly find titles, technologies, or headers indicating potential vulnerabilities.
+
+By automating repetitive screenshot capture, you free up time to focus on testing.
+
+### IT and Network Operations Teams
+
+Beyond offensive security, gowitness is valuable for IT teams maintaining large web environments.
+
+- Provides audit trails and visual confirmation of uptime and content.
+- Identifies technology stacks across your web estate for patch management.
+- Monitors for unexpected changes via grouped screenshots using perception hashes.
+
+This simplifies compliance reviews and change monitoring.
+
+
+## Core Scenarios for gowitness Usage
+
+### Bulk Web Screenshotting and Visual Audits
+
+When assessing hundreds or thousands of URLs, gowitness excels by automatically rendering pages at high fidelity using Chrome Headless. Generate comprehensive galleries that let you:
+
+- Quickly scan and triage targets visually.
+- Filter results by HTTP status codes, technologies, or failure states.
+- Group near-identical screenshots to spot meaningful differences.
+
+This applies to pen testing engagements, attack surface mapping, and asset inventory.
+
+### Audit Logging for In-Depth Analysis
+
+gowitness saves console logs, network captures, cookies, and headers alongside screenshots for complete context. This audit data enables:
+
+- Post-scan review to detect injection points or misconfigurations.
+- Diving deeper into client-side behaviors without manual exploration.
+
+Use this where visual evidence alone is insufficient.
+
+### Centralized Reporting and Results Review
+
+The web-based gallery and report viewer aggregate results, simplifying team collaboration and management oversight. Use cases include:
+
+- Sharing scan results easily within your organization or client teams.
+- Quickly understanding scan coverage, failures, and detected technologies.
+- Leveraging search and filters to narrow down findings by custom criteria.
+
+This empowers faster decision-making and documentation.
+
+
+## Before and After gowitness
+
+| Before gowitness           | After gowitness                                                     |
+|---------------------------|-------------------------------------------------------------------|
+| Manual screenshot capture | Automated bulk screenshot capture with Chrome Headless accuracy  |
+| Time-consuming audits     | Instant galleries with rich filtering and grouping                |
+| Fragmented data sources   | Integrated logs, metadata, and images in one comprehensive view   |
+| Limited context on tech   | Automatic technology detection via Wappalyzer data integration    |
+
+
+## Real Benefits You Can Expect
+
+- **Time Savings:** Automate months of manual screenshot and data gathering in minutes.
+- **Accuracy:** Chrome Headless ensures authentic rendering providing trustworthy evidence.
+- **Insight:** Metadata enriches visual captures, letting you discover hidden tech or anomalous behaviors.
+- **Reporting:** Centralized UI and API make sharing and collaboration effortless.
+
+
+## Practical Tips for Using gowitness Effectively
+
+- Prepare comprehensive URL lists (including Nmap or Nessus exports) to maximize bulk scanning benefits.
+- Use filters in the gallery to focus on response codes or technologies relevant to your scope.
+- Enable audit logging for critical engagements to provide detailed client-side context.
+- Group screenshots by perception hash to identify changes or duplicates efficiently.
+
+
+## Troubleshooting Common Pain Points
+
+- **Slow Scans:** Ensure your target URLs are responsive; tune concurrency settings if applicable.
+- **Too Many Results:** Use filtering aggressively in the gallery to focus on critical targets.
+- **Failed Screenshots:** Check network connectivity and target server stability; consider scanning smaller batches.
+
+
+## Getting Started with gowitness
+
+Ready to accelerate your workflow? Start by preparing your target URL list and scanning with the `gowitness scan` command. Save results to a SQLite database to unlock rich reporting and centralized viewing.
+
+Explore detailed guides on installation, configuration, and running your first scans to gain mastery.
+
+
+---
+
+For comprehensive foundational context, see the [What is gowitness?](./product-intro-value) page, and to dive into terminology and concepts, see [Core Concepts and Terminology](./concepts-terminology).
+
+To start scanning today, get detailed instructions on [Running Your First Scan](../../getting-started/your-first-scan/running-your-first-scan).
+
+---
