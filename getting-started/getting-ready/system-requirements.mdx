@@ -3,4 +3,196 @@ title: "System Requirements & Prerequisites"
 description: "Lists supported operating systems, required dependencies (such as Golang and compatibility with Chrome Headless), and platform-specific notes for Linux, macOS, and Windows. Helps users confirm their environment supports gowitness before proceeding."
 ---
 
-*This page will automatically be generated from the codebase*
+# System Requirements & Prerequisites
+
+Ensure your environment is properly prepared before installing or running gowitness. This guide details supported operating systems, essential dependencies, and important platform-specific notes to confirm compatibility and smooth operation.
+
+---
+
+## 1. Supported Operating Systems
+
+gowitness is designed to run on major desktop operating systems with compatibility for both 64-bit and selected ARM architectures:
+
+- **Linux**
+  - Architectures: amd64 (x86_64), arm64 (aarch64), and arm (32-bit)
+- **macOS**
+  - Architectures: amd64 and arm64 (Apple Silicon)
+- **Windows**
+  - Architectures: amd64 and arm64
+
+Make sure you download or build the correct version matching your OS and architecture.
+
+> <Check>
+> Confirm your OS and architecture with the following command:
+> ```bash
+> uname -m && uname -s
+> ```
+> On Windows, use:
+> ```powershell
+> wmic os get osarchitecture
+> ```
+
+---
+
+## 2. Essential Dependencies
+
+### Go (Golang) Version
+
+gowitness is written in Go and can be built from source. To build from source, you need:
+
+- Golang **version 1.19** or higher
+
+For typical users installing prebuilt binaries, Go is not required.
+
+> <Tip>
+> Use the command `go version` to check your installed Golang version.
+> If missing or outdated, download the latest stable release from https://golang.org/dl/
+> 
+> Example output:
+> ```
+> go version go1.20 linux/amd64
+> ```
+
+### Google Chrome / Chromium Browser
+
+gowitness relies on Chrome Headless as the rendering and screenshot engine. It can either:
+
+- Automatically download the correct Chrome/Chromium binary for your platform
+- Use an existing installed Chrome/Chromium binary on your system
+- Connect to a remote existing Chrome instance via WebSocket
+
+> <Note>
+> If you want to use an existing Chrome binary, specify the path during configuration via the `--chrome-path` flag.
+>
+> For automatic downloads, no manual installation is required.
+
+### Chrome Headless Compatibility
+
+- gowitness uses the [go-rod](https://github.com/go-rod/rod) library
+- Compatible with recent stable versions of:
+  - Google Chrome
+  - Chromium
+  - Microsoft Edge (Chromium-based)
+
+Ensure your browser version supports headless mode.
+
+### Supported Browsers by Platform
+
+| Platform    | Supported Browsers                     |
+|-------------|---------------------------------------|
+| Linux       | Google Chrome, Chromium              |
+| macOS       | Google Chrome, Chromium, Safari not supported |
+| Windows     | Google Chrome, Chromium, Edge        |
+
+> <Warning>
+> Safari and other non-Chromium browsers are **not supported**.
+
+---
+
+## 3. Platform-Specific Notes
+
+### Linux
+
+- Requires a working X11 or headless environment for Chrome Headless
+- GLFW or other related dependencies are handled automatically by Chrome binaries
+- If running without a display, ensure you have a virtual framebuffer (e.g., `Xvfb`) available or run in headless mode (default)
+
+### macOS
+
+- Supports both Intel and Apple Silicon (arm64); verify you download or build the correct binary
+- Runs best with installed Google Chrome (Stable channel)
+
+### Windows
+
+- Support for Windows 10 and later
+- Make sure you have the Edge or Chrome browser installed or rely on the auto-downloader
+
+---
+
+## 4. Network and Permissions Requirements
+
+- **Network Connectivity:**
+  - Ability to reach target URLs via HTTP or HTTPS
+  - Required ports open for HTTP(S) traffic (default 80 and 443)
+
+- **Filesystem Permissions:**
+  - Write permissions to the configured screenshot directory (default `./screenshots`)
+  - Write permissions to output directories or files if using output writers (e.g., database, JSONL, CSV)
+
+- **Firewall & Proxy:**
+  - If behind a proxy, specify it using the `--chrome-proxy` option (format: `http://address:port` or `socks5://address:port`)
+  - Ensure firewall rules allow outbound connections required for scanning
+
+---
+
+## 5. Verifying Your Environment
+
+Before proceeding with installation or scanning, validate your environment with the following checks:
+
+<Steps>
+<Step title="Check Operating System and Architecture">
+Run:
+```bash
+uname -s && uname -m
+```
+Verify it matches one of the supported platforms.
+</Step>
+<Step title="Verify Go Installation (Optional, for building from source)">
+Run:
+```bash
+go version
+```
+Ensure Go 1.19+ is installed if you plan to build gowitness yourself.
+</Step>
+<Step title="Confirm Browser Availability">
+- If specifying a browser binary yourself, ensure the path is correct.
+- Otherwise, verify internet access for auto-download.
+</Step>
+<Step title="Check File System Permissions">
+Confirm you have write access to your intended output directories.
+</Step>
+</Steps>
+
+---
+
+## 6. Common Pitfalls & Tips
+
+- **Incompatible Architecture:** Using a binary not matching your CPU architecture will cause execution failures.
+- **Missing Dependencies When Building:** Ensure Go environment variables (`GOPATH`, `GOROOT`) are properly set.
+- **Chrome Version Mismatch:** Very old or beta Chrome versions may cause unexpected errors.
+- **Insufficient Permissions:** Running under restrictive accounts without write permissions will prevent saving screenshots/results.
+- **Network Constraints:** Firewalls, proxies, and VPNs may affect scan reachability.
+
+---
+
+## 7. Next Steps
+
+After confirming you meet these system requirements and prerequisites, proceed to [Installing gowitness](/getting-started/getting-ready/installing-gowitness) to set up the tool on your platform.
+
+Once installed, you will configure scanning options and run your first scan, guided by [Running Your First Scan](/getting-started/your-first-scan/running-your-first-scan).
+
+---
+
+For a comprehensive understanding, consider reviewing related foundational concepts in [Core Concepts and Terminology](/overview/introduction-foundations/concepts-terminology).
+
+
+---
+
+# Summary
+
+This guide ensures your environment supports gowitness by detailing the supported operating systems, necessary dependencies like Go and Chrome Headless, and platform-specific considerations. You are guided to verify system compatibility, network and file permissions, and common pitfalls to avoid before installation.
+
+### Key sections covered:
+- Supported Operating Systems
+- Dependency Requirements (Golang, Chrome Headless)
+- Platform-Specific Notes
+- Network and Permissions Requirements
+- Environment Verification Checklist
+- Common Pitfalls and Tips
+
+### Important links:
+- [Installing gowitness](/getting-started/getting-ready/installing-gowitness)
+- [Running Your First Scan](/getting-started/your-first-scan/running-your-first-scan)
+- [Core Concepts and Terminology](/overview/introduction-foundations/concepts-terminology)
+
+Ensure your system matches requirements before proceeding to installation and scanning for the best experience with gowitness.
