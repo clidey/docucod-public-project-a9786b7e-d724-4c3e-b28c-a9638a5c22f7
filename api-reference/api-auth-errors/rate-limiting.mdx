@@ -3,4 +3,193 @@ title: "Rate Limiting & Quotas"
 description: "Find out if and how rate limiting is applied to gowitness APIs, its impact on your automation, and strategies to detect and handle quota exhaustion gracefully."
 ---
 
-*This page will automatically be generated from the codebase*
+# Rate Limiting & Quotas
+
+Understand if and how rate limiting applies to gowitness APIs, how this impacts your automation workflows, and strategies to effectively detect and handle quota exhaustion without disrupting your scanning processes.
+
+---
+
+## Overview
+
+Rate limiting and quotas are mechanisms that control the number of requests a client can make to an API within a set period. In the context of gowitness, while there is no explicitly stated built-in rate limiting on the API server, users implementing automation or integrations must be aware of potential operational limits imposed by infrastructure, network conditions, or proxy services.
+
+This documentation guides you through recognizing the presence (or absence) of rate limiting, understanding its potential impact on your automation flows, and applying best practices to prevent disruptions caused by API request throttling.
+
+---
+
+## What to Expect Regarding Rate Limiting in gowitness API
+
+- **No Explicit Rate Limiting Headers or Quotas Documented:**
+  Gowitness API endpoints do not include standard headers like `X-RateLimit-Limit` or `Retry-After` indicating rate limits, nor does the official API specification declare quota constraints.
+
+- **Operational Limits May Exist Beyond Gowitness:**
+  If you deploy gowitness behind a reverse proxy or API gateway, those layers might enforce rate limiting, which would affect API responsiveness.
+
+- **Server Load and Concurrency Settings Influence Throughput:**
+  Gowitness scanning performance depends on concurrency, driver (e.g., `chromedp`) settings, and resource availability. Excessive simultaneous requests may cause slowdowns, but not formal HTTP errors specifically flagged as rate limit responses.
+
+---
+
+## How Rate Limiting Could Impact Your Automation
+
+Even without explicit limits, practical constraints on gowitness API use can manifest as:
+
+- **Timeouts or Slow Responses:** High-volume scan submissions may cause delays or timeouts.
+- **Connection Refusals or Failures:** Overloaded servers or proxy limits can lead to failed requests.
+- **Data Inconsistencies:** Partial or delayed scan results might occur if requests backlog.
+
+Understanding these impacts helps you design resilient integrations that gracefully handle delays and failures.
+
+---
+
+## Detecting Rate Limiting or Quota Exhaustion
+
+Since gowitness does not directly signal rate limits, monitor these indicators:
+
+- **HTTP Status Codes:** Look for 429 (Too Many Requests) errors if proxies or gateways impose limits externally.
+- **Error Messages:** Internal API errors during scan submissions or result retrievals might indicate resource exhaustion.
+- **Response Timing Patterns:** Unusual latency spikes or dropped connections can hint at throttling outside gowitness.
+
+Add logic in your client to monitor and record these patterns for adaptive throttling.
+
+---
+
+## Strategies to Handle Rate Limits Gracefully
+
+To maintain smooth automation and avoid disruptions, implement these approaches:
+
+### 1. Throttle Your Request Rate
+
+Control the frequency of your API calls, especially batch scan submissions, by:
+
+- Adding delays between successive requests.
+- Limiting concurrency levels in your client logic.
+- Using exponential backoff when retries are necessary.
+
+Example strategy for batch URL submission with throttling:
+
+```python
+import time
+import requests
+
+urls = ['https://example1.com', 'https://example2.com', 'https://example3.com']
+api_url = 'http://your-gowitness-server/submit'
+
+for url in urls:
+    response = requests.post(api_url, json={'urls': [url]})
+    if response.status_code == 429:
+        print('Rate limit hit, backing off...')
+        time.sleep(10)  # wait before retrying
+        continue
+    print(f'Submitted {url}: Response {response.status_code}')
+    time.sleep(1)  # delay between requests
+```
+
+### 2. Implement Retry Logic With Backoff
+
+Automatically retry failed requests with incremental delays to accommodate transient limits or load spikes.
+
+### 3. Monitor API Responses and Logs
+
+Incorporate monitoring to detect failures or slowdowns early and adjust your request patterns accordingly.
+
+### 4. Configure Proxy or Rate-Limiting Middlewares
+
+If you manage a reverse proxy (e.g., NGINX, Traefik) fronting gowitness, configure rate limiting to protect the backend gracefully. This allows better control and explicit limit signaling.
+
+### 5. Adjust gowitness Concurrency and Timeout Parameters
+
+At the gowitness runner and driver layers, tune parameters such as concurrency, delay, and timeout to prevent overload:
+
+- For scanning, use the `/submit` API with options like `delay` and `timeout` to pace scans.
+- Balance concurrency to match your infrastructure.
+
+---
+
+## Practical Example: Handling Rate Limits in gowitness Submit API
+
+Here's a sample workflow illustrating how to submit URLs in batches while avoiding excessive load:
+
+<Steps>
+<Step title="Prepare URL Batches">
+Split your target URLs into small batches to control load size.
+</Step>
+<Step title="Submit Batch Request">
+Make a POST request to `/submit` with the batch of URLs and optional options for delay or timeout.
+</Step>
+<Step title="Handle Errors and Rate Limit Responses">
+If you receive HTTP 429 or other errors, wait for a backoff period before retrying.
+</Step>
+<Step title="Monitor Scan Status and Results">
+Periodically query `/results/gallery` or `/results/detail/{id}` to track progress and verify completion.
+</Step>
+<Step title="Adjust Subsequent Requests">
+Based on monitoring data, adjust concurrency or pacing to optimize throughput without hitting resource limits.
+</Step>
+</Steps>
+
+Example API submission request body:
+
+```json
+{
+  "urls": ["https://example.com", "https://example.org"],
+  "options": {
+    "delay": 1000,
+    "timeout": 30,
+    "user_agent": "MyCustomAgent/1.0",
+    "window_x": 1200,
+    "window_y": 800
+  }
+}
+```
+
+---
+
+## Troubleshooting Common Rate Limit Related Issues
+
+<AccordionGroup title="Troubleshooting Rate Limiting Issues">
+<Accordion title="Unexpected 429 Too Many Requests Response">
+- Verify any reverse proxy or API management layer.
+- Confirm if rate limiting is externally enforced.
+- Apply client-side throttling and retry logic.
+</Accordion>
+<Accordion title="Delayed or Missing Scan Results">
+- Check concurrency and timeouts configured in your scan options.
+- Slow down submission rate to reduce server load.
+- Inspect gowitness server logs for resource warnings.
+</Accordion>
+<Accordion title="Connection Timeouts or Errors During Submission">
+- Ensure network reliability.
+- Validate backend resource availability.
+- Tune scan options such as timeout and delay.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Best Practices
+
+- Always start with modest request rates and ramp upwards carefully.
+- Use gowitness `/submit` options to pace scans internally rather than flooding the API.
+- Monitor your API integrations for failures, latency, and error codes.
+- Coordinate with infrastructure teams to understand if proxies apply limits.
+- Implement robust retry and backoff strategies in your automation.
+
+---
+
+## Summary
+
+Though gowitness does not impose explicit rate limits on its API, operational factors and infrastructure may introduce practical constraints. By recognizing these factors and adopting throttling, monitoring, and retry best practices, you can maintain resilient, efficient automation workflows that scale safely and predictably.
+
+---
+
+## Related Documentation
+
+- [Submit Scan Request API](/api-reference/core-endpoints/submit-url) — How to submit URLs and control scan options.
+- [Retrieve Results & Gallery API](/api-reference/core-endpoints/retrieve-results) — Fetch scan results and monitor progress.
+- [Authentication & Authorization](/api-reference/api-auth-errors/authentication) — Secure your API access.
+- [Error Handling & Status Codes](/api-reference/api-auth-errors/errors-status-codes) — Understand API errors including potential rate limits.
+- [Performance Optimization and Concurrency Tuning](/guides/advanced-usage-and-integration/performance-and-concurrency-tuning) — Tune concurrency and resource use for optimal throughput.
+- [Integrating with the gowitness Web API](/guides/advanced-usage-and-integration/web-api-integration) — Comprehensive guide on automating via the API.
+
+---
