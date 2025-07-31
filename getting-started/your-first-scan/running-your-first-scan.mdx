@@ -1,0 +1,264 @@
+---
+title: "Running Your First Scan"
+description: "Outlines the minimal steps needed to perform an initial scan—choosing scan type (single URL, file list, etc.), setting output destination, and invoking core commands. Illustrated with examples for the most common workflows."
+---
+
+# Running Your First Scan
+
+This guide walks you through the minimal, practical steps required to perform your initial scan using gowitness. You'll learn how to select the appropriate scan type for your targets, set a destination for output, and run the essential commands. Clear examples illustrate common workflows, helping you get results quickly and confidently.
+
+---
+
+## 1. Choose Your Scan Type
+
+gowitness supports multiple methods to specify what you want to scan. Your choice depends on where your targets live and how many you have:
+
+- **Single URL Scan**: Perfect for testing or quickly screenshotting just one website.
+- **File-Based Scan**: Use when you have a list of URLs saved in a file or coming from stdin.
+- **CIDR Range Scan**: When scanning entire network subnets to discover web services.
+- **Nmap XML Scan**: Import results from Nmap scans for targeted probing.
+- **Nessus XML Scan**: Import Nessus scan exports to focus on web service targets.
+
+Each method adapts to your input style and scales to your workflow needs.
+
+### Quick Selection Summary:
+
+| Scan Type      | Use Case                           | Input Example                 |
+|----------------|----------------------------------|------------------------------|
+| Single         | One URL target                   | `gowitness scan single -u https://example.com` |
+| File           | Multiple URLs in a text file      | `gowitness scan file -f targets.txt`            |
+| CIDR           | Network range discovery           | `gowitness scan cidr -c 192.168.1.0/24`         |
+| Nmap           | Use Nmap XML results              | `gowitness scan nmap -f scan.xml`               |
+| Nessus         | Use Nessus XML results            | `gowitness scan nessus -f results.nessus`       |
+
+---
+
+## 2. Set Output and Scan Options
+
+By default, gowitness saves screenshots locally but does not persist metadata or scan results. To capture and store detailed scan data, add writer flags.
+
+- **Output Writers (to persist results):**
+
+  - `--write-db` to save into a SQLite or compatible database
+  - `--write-jsonl` to save results as JSON lines
+  - `--write-csv` to output limited columns as CSV
+  - `--write-stdout` to stream results to the console
+
+- **Scan Configuration Highlights:**
+
+  - Choose the concurrent thread count with `--threads` (default: 6).
+  - Control timing with `--timeout` (seconds to wait before giving up on a page).
+  - Adjust screenshot settings like format (`--screenshot-format`) and full-page capture (`--screenshot-fullpage`).
+  - Use `--no-http` or `--no-https` flags to disable auto-adding URL schemes.
+
+### Example Output Flags:
+
+```bash
+--write-db
+--write-jsonl
+--write-csv-file gowitness-results.csv
+--threads 10
+```
+
+**Tip:** Always specify at least one writer to avoid losing valuable metadata.
+
+---
+
+## 3. Run Your First Scan: Step-by-Step Examples
+
+### a) Scan a Single URL
+
+The fastest way to get started if you want to screenshot a single website.
+
+```bash
+gowitness scan single -u https://sensepost.com --write-jsonl
+```
+
+This command will:
+
+- Use the default Chrome-based headless browser for rendering.
+- Capture screenshots and metadata of https://sensepost.com.
+- Save results as JSON lines in the default file.
+
+
+### b) Scan Multiple Targets from a File
+
+Create a plain text file (`targets.txt`) with one URL per line. For example:
+
+```
+https://example.com
+http://testsite.local
+```
+
+Run the scan:
+
+```bash
+gowitness scan file -f targets.txt --write-db --threads 20
+```
+
+What happens here:
+
+- gowitness reads each URL, auto-prepending `http://` and `https://` unless disabled.
+- Runs up to 20 concurrent browser instances for speed.
+- Stores metadata and screenshots in the database.
+
+
+### c) Scan a CIDR Network Range
+
+Scan an entire network range, helpful for discovery and reconnaissance.
+
+```bash
+gowitness scan cidr -c 10.0.0.0/24 --ports 80,443 --write-csv
+```
+
+Key points:
+
+- Scans all hosts in 10.0.0.0/24 on ports 80 and 443.
+- Adds default `http://` and `https://` schemes unless specifically disabled.
+- Outputs results as CSV.
+
+Use flags like `--ports-small`, `--ports-medium`, or `--ports-large` to specify pre-defined ports collections.
+
+
+### d) Scan Targets from Nmap XML
+
+If you have performed a network scan with Nmap and saved results as XML (`-oX`), import and scan:
+
+```bash
+gowitness scan nmap -f nmap-results.xml --open-only --service http --write-jsonl
+```
+
+This will:
+
+- Parse open ports and services matching 'http'.
+- Limit scans to only open ports.
+- Save output as JSON lines.
+
+
+### e) Scan Targets from Nessus XML
+
+For Nessus users, import scan exports:
+
+```bash
+gowitness scan nessus -f nessus.xml --write-db --port 80
+```
+
+This scans web services detected in the Nessus export.
+
+---
+
+## 4. What Happens Internally When You Run a Scan
+
+- gowitness sets up a **runner** with the chosen driver (default `chromedp` browser automation).
+- It feeds your input targets (URLs, file lines, CIDRs, or XML imports) through specialized **readers**.
+- Runs concurrent workers (threads) to load pages, take screenshots, and collect data.
+- Sends results to configured **writers** for storage.
+
+
+---
+
+## 5. Success Criteria and Validation
+
+- Check that the screenshots appear in your configured `--screenshot-path` (default: `./screenshots`).
+- Verify output files or database have metadata; e.g., JSON Lines or SQLite DB is populated.
+- Look for console logs indicating successful URL processing, status codes, and titles.
+
+
+---
+
+## 6. Best Practices and Tips
+
+- **Increase concurrency** (`--threads`) carefully to improve speed, but watch your CPU and memory.
+- Always specify an output writer or you risk losing scan metadata.
+- Use `--log-scan-errors` to see scan problem details.
+- Preprocess URL lists to remove duplicates for efficiency.
+- Remember that `--no-http` or `--no-https` flags can control scheme addition to URLs when needed.
+
+
+---
+
+## 7. Troubleshooting Common Issues
+
+<AccordionGroup title="Troubleshooting Tips">
+<Accordion title="No URL or Input Provided">
+If you run scan commands without specifying targets or input files, gowitness will report an error.
+
+**Solution:** Always provide a URL with `-u`, a file with `-f`, or a CIDR with `-c`.
+</Accordion>
+
+<Accordion title="Source File Not Found or Unreadable">
+Try scanning with a file input but receive "source not readable" errors?
+
+**Ensure:**
+
+- The file path is correct and accessible.
+- File permissions allow reading.
+- For stdin input, use `-f -` and pipe input properly.
+</Accordion>
+
+<Accordion title="Timeouts or Scan Failures">
+Timeouts or failures to screenshot targets might be due to network issues or inaccessible URLs.
+
+**Try:**
+
+- Increasing `--timeout`.
+- Verifying network connectivity.
+- Using `--log-scan-errors` to log problems.
+- Confirming URLs are valid and responsive.
+</Accordion>
+
+<Accordion title="Missing Screenshots or No Output">
+If no screenshots or outputs are saved:
+
+- Check that your `--screenshot-path` directory is writable.
+- Confirm you have specified a writer flag to persist metadata.
+- Review logs for permissions or errors.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 8. What to Do Next
+
+- Experiment with different scan types and input methods based on your workflow.
+- Explore [Validating and Viewing Results](/getting-started/your-first-scan/validating-results) to understand your output.
+- Consult [Troubleshooting Common Issues](/getting-started/your-first-scan/troubleshooting-common-issues) if you encounter problems.
+- Learn about [Quick Configuration](/getting-started/setup-and-configuration/quick-configuration) to optimize your scans.
+
+---
+
+## 9. Additional Resources
+
+- [gowitness System Architecture](https://docs.gowitness.io/overview/architecture-features/architecture-diagram) for understanding how components interact.
+- [Core Concepts and Terminology](https://docs.gowitness.io/overview/introduction-foundations/concepts-terminology) for foundational knowledge.
+- [Scanning Multiple Targets from Files and Lists](https://docs.gowitness.io/guides/scanning-workflows/scanning-multiple-targets) to expand your scanning capabilities.
+
+---
+
+**You are now ready to perform your first successful scan with gowitness. Start capturing visual insights and metadata efficiently!**
+
+---
+
+## Appendix: Complete Command Examples
+
+```bash
+# Single URL scan
+gowitness scan single -u https://example.com --write-jsonl
+
+# Scan URLs from a file
+gowitness scan file -f urls.txt --write-db --threads 10
+
+# Scan a CIDR range with custom ports
+gowitness scan cidr -c 192.168.0.0/24 --port 80 --port 443 --write-csv
+
+# Scan based on Nmap scan results
+gowitness scan nmap -f nmap-results.xml --open-only --service http --write-jsonl
+
+# Scan from Nessus export
+gowitness scan nessus -f scan-results.nessus --write-db
+```
+
+
+---
+
+**Happy scanning!**

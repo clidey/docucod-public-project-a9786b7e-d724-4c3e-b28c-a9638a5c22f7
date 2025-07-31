@@ -1,0 +1,166 @@
+---
+title: "Browser Driver Selection and Customization"
+description: "Explore gowitness's browser automation options, including chromedp and go-rod drivers. Learn which driver fits your needs, how to customize browser behavior, and how to balance compatibility and speed."
+---
+
+# Browser Driver Selection and Customization
+
+Discover how gowitness leverages browser automation to deliver fast, reliable web screenshots through configurable browser drivers. Understand the distinctions between the available driver options, how to choose the right one for your environment and use case, and how to tailor browser behavior to optimize your scanning workflow.
+
+---
+
+## Why Browser Drivers Matter in gowitness
+
+gowitness captures screenshots of web targets using headless browsers. The choice and customization of the browser driver directly impact speed, compatibility, and feature support.
+
+> Imagine needing to capture hundreds or thousands of screenshots across diverse environments. Picking the optimal driver and tuning its behavior ensures you maximize throughput without sacrificing reliability or missing relevant data.
+
+Drivers abstract how gowitness controls Chrome or Chromium instances to load pages and grab screenshots with advanced options.
+
+---
+
+## Available Drivers
+
+### 1. `chromedp` Driver (Default)
+- **Technology**: Uses the `chromedp` Go library to control Chrome via the Chrome DevTools Protocol.
+- **Advantages**:
+  - Faster startup and lower resource footprint.
+  - Suitable for most users and environments.
+  - Supports key gowitness features such as JavaScript evaluation, full-page screenshots, and concurrency.
+- **Customization Options**: Extensive flags to control Chrome's window size, user-agent, proxy settings, and more.
+
+### 2. `gorod` Driver
+- **Technology**: Integrates with the `go-rod` library, another Chrome DevTools automation tool.
+- **Advantages**:
+  - Alternative driver for compatibility or advanced scenarios.
+  - May offer different stability or feature tradeoffs depending on environment.
+- **When to Use**: If you encounter issues with `chromedp` or require specific go-rod features.
+
+#### How to Choose
+
+| Criteria                         | Recommendation                     |
+|---------------------------------|-----------------------------------|
+| Default, general usage           | Use `chromedp`                    |
+| Encountering driver-specific bugs or needing `go-rod` features | Try `gorod` driver               |
+
+---
+
+## Customizing Browser Behavior
+
+gowitness exposes numerous flags to fine-tune how Chrome runs and how scanning behaves:
+
+### Key Configuration Flags
+
+| Flag Name                  | Purpose                                                | Example/Details                                     |
+|----------------------------|--------------------------------------------------------|----------------------------------------------------|
+| `--driver`                 | Selects the browser automation driver (`chromedp` or `gorod`) | `--driver gorod`                                   |
+| `--chrome-path`            | Path to a specific Chrome/Chromium binary to use       | `/usr/bin/google-chrome-stable`                     |
+| `--chrome-user-agent`      | Overrides the User-Agent string sent with requests     | Custom UA strings to mimic specific clients        |
+| `--chrome-proxy`           | Set an HTTP/SOCKS5 proxy for browser network requests  | `socks5://127.0.0.1:9050`                          |
+| `--chrome-window-x` / `--chrome-window-y` | Define browser window dimensions (pixels)        | `--chrome-window-x 1280 --chrome-window-y 720`    |
+| `--chrome-wss-url`         | Connect to a remote Chrome DevTools instance via WebSocket | Use with a remote debugging session                |
+| `--chrome-header`          | Add extra HTTP headers to every request                | Multiple `--chrome-header 'X-Auth-Token: abc123'`   |
+
+### Screenshot Controls
+
+| Flag                        | Effect                                                       |
+|-----------------------------|--------------------------------------------------------------|
+| `--screenshot-format`       | Define image format: `jpeg` (default) or `png`               |
+| `--screenshot-fullpage`     | Capture the *entire* scrollable page, not just viewport      |
+| `--screenshot-skip-save`   | Skip saving screenshots to disk (useful with writers saving) |
+| `--write-screenshots`       | Save screenshots via configured writers (e.g., DB, JSONL)    |
+
+### Scan Behavior Flags
+
+| Flag                       | Effect                                                        |
+|----------------------------|-------------------------------------------------------------|
+| `--threads`                | Number of concurrent pages (goroutines) the driver uses      |
+| `--timeout`                | Time in seconds before considering a page load timed out     |
+| `--delay`                  | Seconds to wait after page navigation before screenshot      |
+| `--javascript`             | Eval a JavaScript function on every page before screenshot   |
+| `--javascript-file`        | File containing JS function for per-page evaluation           |
+| `--save-content`           | Save network content from requests to output (can be large)  |
+| `--skip-html`              | Skip saving initial HTML response                             |
+
+---
+
+## Step-by-Step: Changing the Browser Driver
+
+1. **Evaluate your needs:**
+   - For most cases, continue using the default `chromedp` driver.
+   - If you require special behavior or encounter issues, consider the `gorod` driver.
+
+2. **Modify the scan command with the `--driver` flag:**
+   ```bash
+   gowitness scan single -u https://example.com --driver gorod
+   ```
+
+3. **Customize Chrome behavior via flags:**
+   - To specify window size:
+     ```bash
+     gowitness scan single -u https://example.com --chrome-window-x 1366 --chrome-window-y 768
+     ```
+   - To use a proxy server:
+     ```bash
+     gowitness scan single -u https://example.com --chrome-proxy socks5://127.0.0.1:9050
+     ```
+
+4. **Run your scan and observe results:**
+   - Confirm that screenshots are generated.
+   - Adjust concurrency (`--threads`) or timeout (`--timeout`) to optimize for speed and reliability.
+
+---
+
+## Practical Tips for Driver Customization
+
+- **Start with defaults and scale:** Begin with default concurrency (`--threads 6`) and driver (`chromedp`) settings, then increase or switch drivers only if needed.
+- **Use `--delay` wisely:** Increasing delay can improve stability on slow-loading pages.
+- **Evaluate network needs:** Use `--chrome-proxy` to route traffic when scanning internal or geo-restricted sites.
+- **Remote debugging:** Use `--chrome-wss-url` to connect to an already running Chrome instance for advanced debugging or resource sharing.
+- **Combine JavaScript evaluation:** Inject custom scripts to trigger page states or collect dynamic content using `--javascript`.
+
+---
+
+## Common Pitfalls & How to Avoid Them
+
+<Tip>
+If you experience driver initialization errors or Chrome crashes, verify that Chrome is installed and accessible, or specify the `--chrome-path`. Check logs with `--log-scan-errors` to identify problems.
+</Tip>
+
+<Warning>
+Running with very high concurrency without sufficient CPU/memory will degrade performance and may cause timeouts or failed screenshots.
+</Warning>
+
+<Note>
+When using `--screenshot-skip-save`, ensure you have configured an output writer that handles the screenshots to avoid losing image data.
+</Note>
+
+---
+
+## Verify Your Setup
+
+- Run a single scan with custom driver and options:
+  ```bash
+  gowitness scan single -u https://example.com --driver chromedp --chrome-window-x 1280 --chrome-window-y 720 --threads 3
+  ```
+- Confirm that the screenshot appears in the configured directory or output.
+- Use `--log-scan-errors` to catch and debug any loading or driver issues.
+
+---
+
+## Additional Resources
+
+- [Quick Configuration Guide](/getting-started/setup-and-configuration/quick-configuration): Detailed explanation of scanning flags including driver and Chrome options.
+- [Performance Optimization and Concurrency Tuning Guide](/guides/advanced-usage-and-integration/performance-and-concurrency-tuning): Best practices for tuning concurrency and timeouts.
+- [Troubleshooting Common Issues](/getting-started/your-first-scan/troubleshooting-common-issues): Helps resolve typical driver and environment issues.
+- [Running Your First Scan](/getting-started/your-first-scan/running-your-first-scan): Overview of scan commands and flags including driver selection.
+
+---
+
+## Summary
+
+Selecting and customizing the browser driver in gowitness is key to unlocking powerful, flexible web reconnaissance workflows. The default `chromedp` driver meets most needs, providing robust headless Chrome automation with performance and concurrency support. For special environments or troubleshooting, the `gorod` driver is an alternative. Through various flags, users can tune window size, proxies, screenshot format, JavaScript injection, and concurrency to perfectly fit their scanning context.
+
+Armed with this understanding, you can confidently tailor gowitness's browser automation to your scanning scale and complexity — boosting speed, coverage, and reliability.
+
+---

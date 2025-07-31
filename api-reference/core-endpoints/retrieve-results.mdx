@@ -1,0 +1,293 @@
+---
+title: "Retrieve Results & Gallery"
+description: "Discover how to retrieve scan results through list, gallery, and detailed endpoints. Explore pagination, filtering, and sorting options, and understand response fields for integrating visual and metadata into your applications."
+---
+
+# Retrieve Results & Gallery API Reference
+
+Discover how to retrieve scan results through list, gallery, and detailed endpoints. This API section empowers you to programmatically access captured screenshots and their metadata to integrate visual and contextual data into your applications.
+
+---
+
+## Overview
+
+The Retrieve Results & Gallery API provides three key endpoints designed to help you fetch scan results tailored to different use cases:
+
+- **Results List**: A simple list view with core metadata suitable for summaries and bulk processing.
+- **Gallery View**: A paginated, filterable gallery of results optimized for visual browsing with associated technologies and metadata.
+- **Result Detail**: A full, detailed view of a single scan including the screenshot, metadata, and technical details.
+
+These endpoints support filtering, pagination, and sorting options to help you efficiently query large datasets.
+
+---
+
+## Base URL
+
+All endpoints are accessed relative to the API root (typically `/api` or `/results`), for example:
+
+```
+GET /results/list
+GET /results/gallery
+GET /results/detail/{id}
+```
+
+Authentication requirements should be checked in the general API auth documentation.
+
+---
+
+## Endpoints
+
+### 1. Results List Endpoint
+
+Retrieve a simple list of all results with core metadata, ideal for quick summaries or bulk exports.
+
+#### GET /results/list
+
+**Description**: Returns an array of scan results with basic fields.
+
+**Response Fields:**
+
+| Field           | Type    | Description                                          |
+|-----------------|---------|------------------------------------------------------|
+| id              | int     | Unique identifier for the result                      |
+| url             | string  | The original URL submitted for scanning              |
+| final_url       | string  | The final resolved URL after redirects                |
+| response_code   | int     | HTTP response status code received                     |
+| response_reason | string  | HTTP response reason phrase                            |
+| protocol        | string  | Protocol used (e.g., http, https)                      |
+| content_length  | int64   | Size in bytes of the content retrieved                 |
+| title           | string  | Page title extracted from the HTML                      |
+| failed          | bool    | Indicates if scan failed                               |
+| failed_reason   | string  | Reason for failure if any                              |
+
+**Example Request:**
+
+```http
+GET /results/list HTTP/1.1
+Accept: application/json
+```
+
+**Example Response:**
+
+```json
+[
+  {
+    "id": 101,
+    "url": "http://example.com",
+    "final_url": "http://example.com/home",
+    "response_code": 200,
+    "response_reason": "OK",
+    "protocol": "http",
+    "content_length": 10240,
+    "title": "Example Domain",
+    "failed": false,
+    "failed_reason": ""
+  },
+  ...
+]
+```
+
+---
+
+### 2. Gallery View Endpoint
+
+For visually-driven applications, the gallery endpoint provides paginated and filterable results including technologies detected and screenshot references.
+
+#### GET /results/gallery
+
+**Description**: Returns a paginated gallery of scan results with filtering and sorting capabilities.
+
+**Query Parameters:**
+
+| Parameter       | Type    | Description                                                                 | Default | 
+|-----------------|---------|-----------------------------------------------------------------------------|---------|
+| page            | int     | The page number to retrieve (starts at 1)                                  | 1       |
+| limit           | int     | Number of results per page                                                   | 24      |
+| technologies    | string  | Comma-separated list of technology names to filter results by               | (none)  |
+| status          | string  | Comma-separated list of HTTP status codes to filter by                      | (none)  |
+| perception      | boolean | If true, results are ordered by perception hash group descending            | false   |
+| failed          | boolean | If false, filters out failed screenshots; default is true (show failed)     | true    |
+
+**Response Structure:**
+
+```json
+{
+  "results": [
+    {
+      "id": 101,
+      "probed_at": "2024-05-30T14:21:00Z",
+      "url": "http://example.com",
+      "response_code": 200,
+      "title": "Example Domain",
+      "file_name": "screenshot_101.jpeg",
+      "screenshot": "/screenshots/screenshot_101.jpeg",
+      "failed": false,
+      "technologies": ["nginx", "bootstrap"]
+    },
+    ...
+  ],
+  "page": 1,
+  "limit": 24,
+  "total_count": 500
+}
+```
+
+**Filtering and Sorting:**
+
+- **Technologies**: Filter by technologies detected, e.g., `technologies=nginx,wordpress`
+- **Status Codes**: Filter results by HTTP status codes, e.g., `status=200,404`
+- **Perception Sorting**: Order results by perception hash group to cluster visually similar screenshots.
+- **Failed Filtering**: Exclude failed screenshots by setting `failed=false` in query.
+
+
+**Example Request:**
+
+```http
+GET /results/gallery?page=2&limit=10&technologies=nginx&status=200&failed=false HTTP/1.1
+Accept: application/json
+```
+
+---
+
+### 3. Result Detail Endpoint
+
+For deep integration, use the detail endpoint to retrieve a complete record of a specific scan result, including all metadata, headers, network logs, technologies, TLS info, cookies, and the screenshot path.
+
+#### GET /results/detail/{id}
+
+**Description**: Returns detailed data for a single scan result identified by its numeric ID.
+
+**Path Parameter:**
+
+| Parameter | Type | Description              |
+|-----------|------|--------------------------|
+| id        | int  | The screenshot result ID |
+
+**Response Data Model:**
+
+The response returns a full `Result` object containing:
+
+- Basic metadata (url, final url, status, etc.)
+- Timestamps
+- HTML content and title
+- Screenshot file name and path
+- Failure flags and reasons
+- TLS details, including certificate info and SAN list
+- Detected technologies
+- HTTP headers
+- Network logs (HTTP requests/responses)
+- Console logs from page
+- Cookies
+
+**Example Request:**
+
+```http
+GET /results/detail/101 HTTP/1.1
+Accept: application/json
+```
+
+**Example Response:**
+
+```json
+{
+  "id": 101,
+  "url": "http://example.com",
+  "final_url": "http://example.com/home",
+  "response_code": 200,
+  "response_reason": "OK",
+  "protocol": "http",
+  "content_length": 10240,
+  "title": "Example Domain",
+  "probed_at": "2024-05-30T14:21:00Z",
+  "filename": "screenshot_101.jpeg",
+  "screenshot": "/screenshots/screenshot_101.jpeg",
+  "failed": false,
+  "failed_reason": "",
+  "tls": {
+    "protocol": "TLS 1.2",
+    "key_exchange": "ECDHE",
+    "cipher": "AES_128_GCM",
+    "subject_name": "example.com",
+    "san_list": ["example.com", "www.example.com"],
+    "issuer": "Let's Encrypt",
+    "valid_from": "2024-01-01T00:00:00Z",
+    "valid_to": "2024-04-01T00:00:00Z",
+    "encrypted_client_hello": false
+  },
+  "technologies": [
+    {"value": "nginx"},
+    {"value": "bootstrap"}
+  ],
+  "headers": [
+    {"key": "Content-Type", "value": "text/html"},
+    {"key": "Server", "value": "nginx"}
+  ],
+  "network": [...],
+  "console": [...],
+  "cookies": [...]
+}
+```
+
+> The detailed response enables complete reconstruction and display of scan results in any client or reporting tool.
+
+---
+
+## Usage Patterns & Tips
+
+- Start with the **Gallery View** to browse results visually with context on detected technologies and filtering by HTTP status or failure.
+- Use the **Results List** endpoint when you need a lightweight bulk export of scan metadata.
+- Fetch individual scans in-depth with the **Detail Endpoint** to access rich metadata, including TLS certificate info and network logs.
+- When requesting the Gallery endpoint, balance `limit` and `page` parameters to paginate through large data efficiently.
+- Use filtering with technologies and status codes to narrow down large scans to relevant subsets.
+- Sorting by perception hash groups via `perception=true` can organize visually similar scan results, aiding manual review.
+
+---
+
+## Common Pitfalls & Troubleshooting
+
+- Incorrect pagination parameters (e.g., zero or negative page/limit) revert to default pagination settings.
+- Malformed filters (e.g., non-integer status codes) are ignored silently to avoid request failure.
+- Large result sets without pagination can impact performance; always paginate large queries.
+- The detail endpoint requires a valid existing ID; invalid IDs will result in empty or error responses.
+- Failed result filtering defaults to including failures; explicitly set the `failed` parameter to control visibility.
+
+---
+
+## Example Combined Workflow
+
+1. **Browse gallery page 1** with 24 results, filtering for `nginx` and HTTP 200:
+
+```http
+GET /results/gallery?page=1&limit=24&technologies=nginx&status=200 HTTP/1.1
+```
+
+2. **Select a result by ID (e.g., 101) to fetch details:**
+
+```http
+GET /results/detail/101 HTTP/1.1
+```
+
+3. **Retrieve a full list of results for bulk processing:**
+
+```http
+GET /results/list HTTP/1.1
+```
+
+---
+
+## Related Documentation
+
+- [Submit Scan Request API](./submit-url) – Automate submission of URLs for scanning
+- [Search & Technology Endpoints](./search-technology) – Explore searching results with advanced operators
+- [Database Statistics API](./database-statistics) – Monitor the scan database size and counts
+- [Authentication & Authorization](./authentication) – Secure your API usage
+- [Error Handling](./errors-status-codes) – Decode error responses and status codes
+- [gowitness CLI Reference](../../cmd/scan) – Commands for scanning and output format control
+
+---
+
+## Summary
+
+This API section empowers you to effectively retrieve, browse, and integrate gowitness scan results and galleries. Whether presenting a visual gallery with filtering or extracting detailed scan metadata for analysis, these endpoints provide comprehensive access to your scan data.
+
+---

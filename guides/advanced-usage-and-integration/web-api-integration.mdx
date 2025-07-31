@@ -1,0 +1,315 @@
+---
+title: "Integrating with the gowitness Web API"
+description: "Unlock gowitness automation through its powerful Web API. Follow practical examples to submit scans, fetch results, and build custom integrations with the results database via RESTful endpoints."
+---
+
+# Integrating with the gowitness Web API
+
+Unlock the power of automation and seamless integration with gowitness through its robust Web API. This guide walks you through practical workflows to submit scan requests, retrieve scan results, and build custom workflows leveraging RESTful endpoints. Whether you're automating bulk scans, integrating gowitness into your security toolchain, or retrieving screenshots and metadata for custom processing, this document equips you with clear, actionable steps.
+
+---
+
+## 1. Overview of the gowitness Web API
+
+### What This Guide Helps You Accomplish
+- Submit URLs for automated screenshot scanning through HTTP API calls.
+- Retrieve scan results including screenshots and metadata.
+- Customize scan parameters such as browser window size, user agent, timeouts, and delay.
+- Integrate gowitness scanning capabilities into your own tools or orchestration pipelines.
+
+### Prerequisites
+- A running gowitness report server exposing the API (default port: `7171`).
+- Access to the server host's API endpoints (network/firewall permissions).
+- Basic understanding of HTTP requests and JSON payload formats.
+
+### Expected Outcome
+- Ability to programmatically submit single or multiple URLs for scanning.
+- Fetch and process scan results programmatically.
+- Build automated workflows that leverage gowitness's screenshot and metadata capture.
+
+### Time Estimate
+- Initial understanding and first API request: ~10 minutes.
+- Integrating into automated workflows: varies based on your environment.
+
+### Difficulty Level
+- Intermediate: Requires familiarity with REST APIs and basic JSON handling.
+
+---
+
+## 2. Getting Started: Running the gowitness Web API Server
+
+Before using the API, ensure the gowitness report server is up and running. You can start it with default or customized options:
+
+```bash
+gowitness report server --host 0.0.0.0 --port 7171 --db-uri sqlite:///path/to/gowitness.sqlite3 --screenshot-path ./screenshots
+```
+
+**Key Flags:**
+- `--host`: IP address to bind the API server.
+- `--port`: Port number to listen on.
+- `--db-uri`: Database URI (supports SQLite, Postgres, MySQL).
+- `--screenshot-path`: Path where screenshots and assets are stored.
+
+You can also run gowitness using the provided Docker image with a volume mapping for persistent storage and screenshots.
+
+<Tip>
+Running the API server with `--host 0.0.0.0` makes it accessible on your network. For production, use firewall rules or authentication protections to secure access.
+</Tip>
+
+---
+
+## 3. Submitting Scan Requests via the API
+
+gowitness provides two main endpoints for submitting scanning tasks:
+
+- **Submit multiple URLs for asynchronous scanning and database saving:** POST `/api/submit`
+- **Submit a single URL for immediate scan and inline response:** POST `/api/submit/single`
+
+### 3.1 Submit Multiple URLs for Scanning
+
+Use this endpoint to send batches of URLs that gowitness will scan asynchronously, saving the results to the configured database.
+
+**Endpoint:**
+```
+POST /api/submit
+Content-Type: application/json
+```
+
+**Request Body JSON schema:**
+```json
+{
+  "urls": ["https://example.com", "https://another.com"],
+  "options": {
+    "window_x": 0,
+    "window_y": 0,
+    "user_agent": "",
+    "timeout": 30,
+    "delay": 0,
+    "format": "png"
+  }
+}
+```
+
+- `urls` (array of strings): List of URLs to scan.
+- `options` (optional): Scan configuration parameters:
+  - `window_x`, `window_y`: Position of the Chrome window.
+  - `user_agent`: Override the browser's User-Agent string.
+  - `timeout`: Scan timeout in seconds.
+  - `delay`: Delay in seconds before taking the screenshot.
+  - `format`: Screenshot format (`png`, `jpeg`, etc.).
+
+**Example using `curl`:**
+```bash
+curl -X POST http://localhost:7171/api/submit \
+   -H 'Content-Type: application/json' \
+   -d '{"urls": ["https://sensepost.com", "https://example.com"], "options": {"timeout": 20, "format": "jpeg"}}'
+```
+
+**Response:**
+```json
+"Probing started"
+```
+
+**Workflow Notes:**
+- The scan runs asynchronously; results will be available in the database.
+- Use the web UI or API result endpoints to fetch completed scan data.
+
+### 3.2 Submit a Single URL for Immediate Scanning
+
+For quick scans where you need the screenshot and metadata immediately without saving to the database.
+
+**Endpoint:**
+```
+POST /api/submit/single
+Content-Type: application/json
+```
+
+**Request Body JSON schema:**
+```json
+{
+  "url": "https://example.com",
+  "options": {
+    "window_x": 0,
+    "window_y": 0,
+    "user_agent": "",
+    "timeout": 30,
+    "delay": 0,
+    "format": "png"
+  }
+}
+```
+
+**Example using `curl`:**
+```bash
+curl -X POST http://localhost:7171/api/submit/single \
+   -H 'Content-Type: application/json' \
+   -d '{"url": "https://sensepost.com", "options": {"timeout": 15}}'
+```
+
+**Response:**
+```json
+{
+  "ID": "uuid",
+  "URL": "https://sensepost.com",
+  "Status": "success",
+  "Screenshot": "<base64 encoded PNG data or file reference>",
+  ... other metadata fields ...
+}
+```
+
+<Tip>
+Use the single submit endpoint for on-demand scans that do not need persistent storage; this is ideal for integration with real-time tools or testing.
+</Tip>
+
+---
+
+## 4. Retrieving Scan Results and Galleries
+
+Once scans are submitted and processed, you can retrieve results via the API endpoints related to the database.
+
+### API Endpoints for Results
+
+| Method | Endpoint                         | Purpose                      |
+|--------|---------------------------------|------------------------------|
+| GET    | `/api/results/gallery`          | Get a gallery overview       |
+| GET    | `/api/results/list`             | Get a list of scan results   |
+| GET    | `/api/results/detail/{id}`      | Get detailed info for a scan |
+| POST   | `/api/results/delete`           | Delete scan results          |
+| GET    | `/api/results/technology`       | List technologies detected   |
+
+
+### Example: Listing Scan Results
+
+```bash
+curl http://localhost:7171/api/results/list
+```
+
+Returns a JSON array of scoped scan result objects, including metadata and links to screenshots.
+
+### Accessing Screenshots
+
+Screenshots are served via the web server under the `/screenshots` path.
+
+For example: `http://localhost:7171/screenshots/<filename.png>`
+
+This makes it simple to display or process images retrieved from scans.
+
+---
+
+## 5. Scan Options Explained
+
+To tailor scans to your needs, you can set options in your JSON requests:
+
+| Option      | Description                                                                        |
+|-------------|------------------------------------------------------------------------------------|
+| `window_x`  | The X coordinate of the Chrome browser window. Set to 0 for default positioning.   |
+| `window_y`  | The Y coordinate of the Chrome browser window. Set to 0 for default positioning.   |
+| `user_agent`| A custom User-Agent string for the scan. Useful for simulating different browsers. |
+| `timeout`   | Maximum time in seconds to wait for the scan to complete before aborting.          |
+| `delay`     | Wait time in seconds before capturing the screenshot. Useful to let pages fully load.|
+| `format`    | Screenshot image format: PNG (default), JPEG, etc.                                 |
+
+<Tip>
+Start with default options. Adjust `timeout` and `delay` if targeting slow-loading pages or dynamic content.
+</Tip>
+
+---
+
+## 6. Practical Integration Example: Submitting and Fetching Results
+
+Imagine you want to automate scans for a list of URLs and then retrieve their thumbnails for embedding in a dashboard.
+
+### Workflow
+
+1. Submit URLs for scanning using `/api/submit`.
+2. Poll `/api/results/list` periodically to check completed scans.
+3. Fetch details from `/api/results/detail/{id}` for each scan.
+4. Access the screenshot via `/screenshots/<image_file>` for display.
+
+### Sample Pseudo-Code (Python)
+
+```python
+import requests
+import time
+
+# 1. Submit scan job
+urls = ["https://example.com", "https://testsite.com"]
+submit_payload = { "urls": urls, "options": {"timeout": 20, "format": "png"} }
+
+resp = requests.post('http://localhost:7171/api/submit', json=submit_payload)
+print(resp.json())
+
+# 2. Poll for results
+completed_ids = set()
+while len(completed_ids) < len(urls):
+    r = requests.get('http://localhost:7171/api/results/list')
+    results = r.json()
+
+    for res in results:
+        if res['Status'] == 'success' and res['ID'] not in completed_ids:
+            print(f"Scan completed for {res['URL']}")
+            completed_ids.add(res['ID'])
+    time.sleep(5)
+
+# 3. Fetch detailed data
+for scan_id in completed_ids:
+    detail = requests.get(f'http://localhost:7171/api/results/detail/{scan_id}').json()
+    print(f"URL: {detail['URL']} Screenshot file: {detail['ScreenshotFile']}")
+
+# 4. Screenshots are accessible at http://localhost:7171/screenshots/
+```
+
+---
+
+## 7. Troubleshooting Common API Issues
+
+### Issue: API Server Not Responding
+- Ensure the report server is running (`gowitness report server`).
+- Check the host and port configuration.
+- Verify network/firewall rules allow access.
+
+### Issue: JSON Parsing Errors on Submit
+- Validate JSON syntax.
+- Confirm required fields (`urls` for batch or `url` for single).
+- Use a JSON validator tool or `curl` with `-v` to check request payload.
+
+### Issue: No Results After Submit
+- Batch submit runs async; allow time for scans to complete.
+- Confirm the database URI and screenshot path are correct.
+- Verify logs for any scan errors.
+
+### Issue: Screenshots Not Accessible
+- Confirm the screenshot path matches the API server's `--screenshot-path`.
+- Check file permissions.
+
+<Tip>
+Enable and review gowitness logs for deeper diagnostics when integrating the API.
+</Tip>
+
+---
+
+## 8. Best Practices for Using the gowitness Web API
+
+- Start your integration by testing the `submit/single` endpoint to verify connectivity.
+- Use the batch `submit` endpoint for large-scale or scheduled scans.
+- Regularly query `/api/results/list` or `/gallery` to fetch up-to-date results.
+- Secure your API endpoint using network restrictions or proxies.
+- Leverage the screenshot files URL structure for easy access.
+- Customize scan options to adapt to target site behaviors and reduce false negatives.
+
+---
+
+## 9. Next Steps and Related Documentation
+
+- Explore the [Running Your First Scan](/getting-started/your-first-scan/running-your-first-scan) guide to understand scanning parameters.
+- Learn how to [Validate and View Results](/getting-started/your-first-scan/validating-results) through CLI and UI.
+- Deep dive into [Scanning Multiple Targets](/guides/scanning-workflows/scanning-multiple-targets) for advanced batch workflows.
+- Enhance reporting via [Generating and Viewing Reports](/guides/reporting-and-results/generating-and-viewing-reports).
+- Optimize performance with [Concurrency and Timeout Tuning](/guides/advanced-usage-and-integration/performance-and-concurrency-tuning).
+
+For a full list of API endpoints and detailed specs, refer to the swagger documentation exposed via the server at `/swagger/doc.json` or through the web UI.
+
+---
+
+# Summary
+This guide empowers you to use gowitness's Web API to automate scanning tasks and efficiently retrieve screenshots and metadata. With clear instructions for submitting URLs, customizing scan options, and accessing results, you can integrate gowitness into broader security workflows and automation pipelines smoothly. Start by launching the API server and step through simple to advanced usage scenarios confident in your ability to leverage this powerful interface.

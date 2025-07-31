@@ -1,0 +1,132 @@
+{
+  "background": {
+    "decoration": "gradient"
+  },
+  "colors": {
+    "dark": "#1E3A8A",
+    "light": "#60A5FA",
+    "primary": "#60A5FA"
+  },
+  "favicon": "/favicon.svg",
+  "fonts": {
+    "family": "Montserrat",
+    "format": "woff2",
+    "source": "https://fonts.gstatic.com/s/googlesansflex/v5/t5sJIQcYNIWbFgDgAAzZ34auoVyXkJCOvp3SFWJbN5hF8Ju1x6sKCyp0l9sI40swNJwGpVd4AZzz0v6lJ4qFXNZhGjLvDSkV4USKMo6qQzwliVdHAy9jxTDHg_ugnAakpwGc-cxgUqDCIUI.woff2"
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
+  "logo": {
+    "dark": "./logo/logo.svg",
+    "light": "./logo/logo.svg"
+  },
+  "name": "gowitness",
+  "navigation": {
+    "tabs": [
+      {
+        "groups": [
+          {
+            "group": "Introduction and Core Concepts",
+            "pages": [
+              "overview/introduction-foundations/product-intro-value",
+              "overview/introduction-foundations/target-audience-use-cases",
+              "overview/introduction-foundations/concepts-terminology"
+            ]
+          },
+          {
+            "group": "System Architecture and Key Features",
+            "pages": [
+              "overview/architecture-features/architecture-diagram",
+              "overview/architecture-features/feature-quicktour",
+              "overview/architecture-features/integration-overview"
+            ]
+          }
+        ],
+        "tab": "Overview"
+      },
+      {
+        "groups": [
+          {
+            "group": "Getting Ready",
+            "pages": [
+              "getting-started/getting-ready/system-requirements",
+              "getting-started/getting-ready/installing-gowitness"
+            ]
+          },
+          {
+            "group": "Setup and Configuration",
+            "pages": [
+              "getting-started/setup-and-configuration/quick-configuration",
+              "getting-started/setup-and-configuration/understanding-output-formats"
+            ]
+          },
+          {
+            "group": "Your First Scan",
+            "pages": [
+              "getting-started/your-first-scan/running-your-first-scan",
+              "getting-started/your-first-scan/validating-results",
+              "getting-started/your-first-scan/troubleshooting-common-issues"
+            ]
+          }
+        ],
+        "tab": "Getting Started"
+      },
+      {
+        "groups": [
+          {
+            "group": "Scanning Workflows",
+            "pages": [
+              "guides/scanning-workflows/quickstart-single-scan",
+              "guides/scanning-workflows/scanning-multiple-targets",
+              "guides/scanning-workflows/network-ranges-external-results"
+            ]
+          },
+          {
+            "group": "Reporting and Managing Scan Results",
+            "pages": [
+              "guides/reporting-and-results/output-formats-best-practices",
+              "guides/reporting-and-results/generating-and-viewing-reports",
+              "guides/reporting-and-results/upgrading-merging-and-converting-reports"
+            ]
+          },
+          {
+            "group": "Advanced Usage and Integration",
+            "pages": [
+              "guides/advanced-usage-and-integration/performance-and-concurrency-tuning",
+              "guides/advanced-usage-and-integration/web-api-integration",
+              "guides/advanced-usage-and-integration/driver-selection-and-browser-modes"
+            ]
+          }
+        ],
+        "tab": "Guides"
+      },
+      {
+        "groups": [
+          {
+            "group": "Core Endpoints",
+            "pages": [
+              "api-reference/core-endpoints/submit-url",
+              "api-reference/core-endpoints/retrieve-results",
+              "api-reference/core-endpoints/database-statistics",
+              "api-reference/core-endpoints/search-technology"
+            ]
+          },
+          {
+            "group": "Authentication, Errors, and Usage Patterns",
+            "pages": [
+              "api-reference/api-auth-errors/authentication",
+              "api-reference/api-auth-errors/errors-status-codes",
+              "api-reference/api-auth-errors/rate-limiting",
+              "api-reference/api-auth-errors/api-usage-examples"
+            ]
+          }
+        ],
+        "tab": "API Reference"
+      }
+    ]
+  },
+  "styling": {
+    "codeblocks": "dark",
+    "eyebrows": "breadcrumbs"
+  }
+}

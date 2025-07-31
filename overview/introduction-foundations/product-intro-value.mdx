@@ -1,0 +1,148 @@
+---
+title: "What is gowitness?"
+description: "Learn the purpose, value, and business rationale behind gowitness: a Go-based utility that captures web screenshots with Chrome Headless, supports advanced data capture, and streamlines the review of reconnaissance results. Understand how it stands out via speed, accuracy, versatile input methods, and its modern reporting UI."
+---
+
+# What is gowitness?
+
+## Capture Web Screenshots with Speed and Precision
+
+gowitness is a powerful Go-based utility designed to capture screenshots of websites using Chrome Headless. It goes beyond simple snapshotting by offering advanced data capture alongside a modern, intuitive reporting interface—making it ideal for anyone needing to quickly capture and review reconnaissance results across many URLs.
+
+### Why gowitness Matters to You
+
+- **Lightning-Fast Capture:** Utilizes Chrome Headless for rapid, efficient screenshotting.
+- **Accurate, Rich Data:** Captures HTTP response details, TLS info, headers, console logs, network activity, and detected technologies.
+- **Flexible Input Methods:** Accepts single URLs, bulk lists, or network ranges for versatile scanning workflows.
+- **Streamlined Review UI:** View results instantly in an attractive web interface tailored for swift reconnaissance analysis.
+- **Choose Your Output:** Supports multiple screenshot formats (JPEG, PNG, PDF) with configurable timing and browser settings.
+
+### Designed For
+
+Security professionals, penetration testers, bug hunters, and automation enthusiasts who require a reliable, fast, and comprehensive way to document web assets during discovery and recon.
+
+---
+
+## What is gowitness?
+
+At its core, gowitness is a specialized tool that automates the process of browsing, capturing, and cataloging websites. It employs Google's Chrome Headless browser to programmatically load web pages and take accurate screenshots while gathering enriched meta-information. Unlike generic screenshot tools, gowitness combines speed with advanced data collection, making it invaluable in fast-paced security assessments.
+
+### The Problem It Solves
+
+Manual screenshotting of targets is slow, inconsistent, and error-prone. While other tools capture images, they often lack the depth of data or UI integrations that allow teams to quickly assess reconnaissance results. gowitness fills this gap by delivering a pipeline that covers:
+
+- Real-time web rendering for snapshot accuracy.
+- Extraction of HTTP responses, TLS certificates, headers, cookies, network logs, console logs, and technology stacks.
+- A clean, modern interface for iterative review without switching tools.
+
+### What Sets gowitness Apart
+
+- **Speed:** Built in Go with Chrome Headless, it captures screenshots and data faster than typical browser automation scripts.
+- **Data Depth:** Collects rich associated data on every probe, enabling deeper analysis without extra steps.
+- **Flexible Usage:** Supports single immediate probes and bulk job submissions with fine-grained options.
+- **UI Integration:** Results appear in an interactive web UI tailored for rapid understanding and follow-up actions.
+
+---
+
+## Core Features & Capabilities
+
+### 1. Multi-Mode Probe Submission
+Users can submit URLs individually for an immediate probe or batch multiple URLs as jobs. Options include setting:
+
+- Screenshot formats: JPEG, PNG, PDF
+- Timeouts and delays for page loading
+- Browser window dimensions and user-agent strings
+
+### 2. Comprehensive Data Capture
+For every probe, gowitness collects:
+
+- **Screenshots:** Visual capture of the rendered webpage
+- **HTTP Details:** Response codes, protocol versions, content size, headers
+- **TLS Info:** Certificate details, cipher suites, SANs
+- **Technologies:** Detected web technologies via header and response analysis
+- **Network Logs:** Requests made during page rendering
+- **Console Logs:** Browser JavaScript console output
+- **Cookies:** Secure and session cookie metadata
+
+### 3. Modern Reporting Interface
+The built-in UI lets users:
+
+- Quickly submit new probes and jobs through forms with advanced options
+- Instantly see the probe result details side-by-side with screenshots
+- Navigate results efficiently with filtering and search capabilities
+- Review granular metadata to triage findings
+
+### 4. Versatile Input Handling
+gowitness accepts:
+
+- Direct URL entries for quick probes
+- Multiple URL inputs in a single submission job
+- Bulk input files and external tool integrations (covered elsewhere)
+
+### 5. Configurable Execution Parameters
+You control:
+
+- Screenshot format and resolution
+- User agent strings to mimic different clients
+- Timeouts and delays for page stability
+
+---
+
+## Why Should I Care?
+
+### Unlock Faster, More Accurate Reconnaissance
+gowitness removes the bottleneck of manual screenshotting by fully automating and enriching the process. The detailed metadata captured alongside screenshots empowers faster triage and deeper insights, all accessible through an elegant UI.
+
+### Real-World Use Cases
+
+- **Penetration Testing:** Quickly snapshot and catalog a large attack surface with metadata for prioritization.
+- **Asset Discovery:** Visually confirm discovered hosts and identify tech stacks without running multiple tools.
+- **Bug Bounty Recon:** Automate the capture of potential targets to maximize coverage without manual overhead.
+- **Compliance Auditing:** Record site states with associated metadata for reporting and evidence.
+
+### Experience Before and After gowitness
+
+**Before:** Manual or slow toolchain, images disconnected from meaningful data, mixing multiple tools.
+
+**After:** Integrated scanning with rich data, immediate visual feedback, and organized results for rapid decision-making.
+
+### Impact on ROI
+Users report drastically reduced time spent in web reconnaissance phases, fewer missed findings, and better communication across teams due to richer, accessible data.
+
+---
+
+## Getting Started Preview
+
+### Quick Start
+Launching your first probe involves either submitting a single URL for immediate capture or creating a job with multiple URLs. Use the web UI to:
+
+1. Enter the target URLs
+2. Choose your screenshot format
+3. Tune timeout and delay settings as needed
+4. Submit and view results immediately
+
+### Prerequisites
+- Ensure Chrome or Chromium is installed as gowitness relies on Chrome Headless
+- Access to the web UI hosted by your gowitness instance
+
+### Next Steps
+Explore these related pages for detailed guidance:
+
+- [Who Should Use gowitness (and When)?](/overview/introduction-foundations/target-audience-use-cases)
+- [Quickstart: Scan a Single Website](/guides/scanning-workflows/quickstart-single-scan)
+- [Understanding Output Formats](/getting-started/setup-and-configuration/understanding-output-formats)
+
+---
+
+## Summary
+gowitness is a high-performance utility that transforms how you capture and analyze website screenshots during reconnaissance. By combining speed, detail, and an accessible UI, it enables security professionals to work smarter and more effectively.
+
+Explore its intuitive probe submission options, rich data capture, and streamlined results review to elevate your web reconnaissance workflows immediately.
+
+---
+
+## Additional Resources
+- [gowitness GitHub Repository](https://github.com/sensepost/gowitness)
+- [API Reference for Submitting Scans and Retrieving Results](/api-reference/core-endpoints/submit-url)
+- [Advanced Usage and Integration Guides](/guides/advanced-usage-and-integration/web-api-integration)
+

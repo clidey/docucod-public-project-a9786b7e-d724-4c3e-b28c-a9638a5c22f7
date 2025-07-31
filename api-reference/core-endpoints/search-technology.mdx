@@ -1,0 +1,247 @@
+---
+title: "Search & Technology Endpoints"
+description: "Utilize powerful search and technology discovery APIs to query for results by specific criteria, including full-text search and detected technologies, enabling granular data mining and automation."
+---
+
+# Search & Technology Endpoints
+
+Unlock powerful data mining and automation capabilities through the gowitness API’s Search and Technology endpoints. These interfaces enable users to efficiently locate scan results based on rich criteria such as full-text content, HTTP headers, detected technologies, and perception hashes. Coupled with the ability to retrieve all unique technologies detected during scans, these endpoints expand your ability to discover insights, automate reporting, and fine-tune your recon workflows.
+
+---
+
+## Overview
+This documentation covers two primary API endpoints under the `/api` namespace:
+
+- `/search` — submit complex search queries with advanced operators
+- `/results/technology` — retrieve a comprehensive list of detected technologies
+
+These endpoints empower users to query the rich scan metadata stored in the database, allowing granular filtering and precise automation capabilities beyond simple listing.
+
+---
+
+## Table of Contents
+
+1. [Search API Endpoint](#search-api-endpoint)
+    - Overview
+    - Query Syntax & Operators
+    - Request & Response
+    - Usage Examples
+    - Best Practices
+    - Common Issues & Troubleshooting
+2. [Technology List API Endpoint](#technology-list-api-endpoint)
+    - Overview
+    - Response Structure
+    - Usage Examples
+3. [Integration Tips & Next Steps](#integration-tips-next-steps)
+
+---
+
+## Search API Endpoint
+
+### Overview
+The `/search` endpoint accepts rich full-text search queries enabling users to find scan results based on multiple metadata fields or raw content.
+
+This endpoint supports query operators to target specific parts of the scan data, allowing precise focus beyond typical free-text matching. Matches return detailed scan results filtered by the given criteria.
+
+### Query Syntax & Supported Operators
+Users can craft search queries using a combination of free-text and operator-prefixed terms. The supported operators include:
+
+- `title:` — Filters results where the scanned page title matches the value.
+- `tech:` — Filters by detected technology names.
+- `header:` — Filters HTTP headers by matching header values.
+- `body:` — Filters by matching substrings in the page HTML body.
+- `p:` — Filters by perception hash group IDs (used for visual similarity grouping).
+
+Operators support quoted values (e.g., `title:"My Site"`) to include spaces.
+
+Additionally, any remaining unqualified free-text terms are used to search across URL fields and page titles.
+
+### Request Structure
+- **Method:** `POST`
+- **URL:** `/api/search`
+- **Content-Type:** `application/json`
+
+```json
+{
+  "query": "title:example tech:nginx"
+}
+```
+
+### Response Structure
+The response is a JSON array of objects, each representing a matching scan result with key metadata fields and matched search scopes:
+
+| Field           | Type        | Description                               |
+|-----------------|-------------|-------------------------------------------|
+| `id`            | integer     | Unique result identifier                   |
+| `url`           | string      | Original scanned URL                       |
+| `final_url`     | string      | Final URL after redirects                  |
+| `response_code` | integer     | HTTP status code from scan                 |
+| `response_reason` | string    | HTTP status text                           |
+| `protocol`      | string      | Protocol used (e.g., http, https)         |
+| `content_length`| integer     | Response body size in bytes                |
+| `title`         | string      | Scanned page title                         |
+| `failed`        | boolean     | Flag if the scan failed                     |
+| `failed_reason` | string      | Reason for failure if any                   |
+| `file_name`     | string      | Filename of the saved screenshot or PDF   |
+| `screenshot`    | string      | Relative path or URL to the screenshot    |
+| `matched_fields`| array[string] | Fields that matched this search result   |
+
+#### Example response snippet
+```json
+[
+  {
+    "id": 101,
+    "url": "http://example.com",
+    "final_url": "http://www.example.com",
+    "response_code": 200,
+    "response_reason": "OK",
+    "protocol": "http",
+    "content_length": 12345,
+    "title": "Example Domain",
+    "failed": false,
+    "failed_reason": "",
+    "file_name": "example_101.png",
+    "screenshot": "screenshots/example_101.png",
+    "matched_fields": ["title", "tech"]
+  }
+]
+```
+
+### Detailed Request and Response Example
+
+<CodeGroup>
+```http
+POST /api/search HTTP/1.1
+Host: your-gowitness-host
+Content-Type: application/json
+
+{
+  "query": "title:example tech:nginx"
+}
+```
+
+```json
+[
+  {
+    "id": 101,
+    "url": "http://example.com",
+    "final_url": "http://www.example.com",
+    "response_code": 200,
+    "response_reason": "OK",
+    "protocol": "http",
+    "content_length": 12345,
+    "title": "Example Domain",
+    "failed": false,
+    "failed_reason": "",
+    "file_name": "example_101.png",
+    "screenshot": "screenshots/example_101.png",
+    "matched_fields": ["title", "tech"]
+  }
+]
+```
+</CodeGroup>
+
+### How Search Works Internally
+- Queries are parsed to identify operator-prefixed filters.
+- Each filter is translated into optimized database queries targeting the appropriate tables/fields.
+- Results from individual filters are combined while avoiding duplicates.
+- Remaining free-text is matched against URL and title fields.
+- Matched fields per result are tracked and returned to inform the user which aspect matched.
+
+### Best Practices
+- Use operator prefixes to focus on specific metadata quickly.
+- Use quoted values for multi-word search terms.
+- Combine free-text and operators for broad or narrow search.
+- Avoid overly generic queries to reduce large result sets.
+- Utilize the `matched_fields` info to programmatically categorize matches.
+
+### Common Errors and Troubleshooting
+<AccordionGroup title="Search API Troubleshooting">
+<Accordion title="Empty or Invalid JSON Request Body">
+Ensure the POST body contains valid JSON with the `query` key. The server returns HTTP 500 with an error message on failures parsing JSON.
+
+Example Fix: 
+```json
+{"query":"title:example"}
+```
+</Accordion>
+<Accordion title="No Results Found">
+Multi-field searches may return no results if filters are too restrictive. Try relaxing filters or verifying the database contents.
+</Accordion>
+<Accordion title="Partial Matches Missing">
+The API only returns exact matches for each operator. Confirm that your search string matches the indexed data and operators (`title:`, `tech:`) are properly formed.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## Technology List API Endpoint
+
+### Overview
+The `/results/technology` endpoint provides a curated, unique list of all technologies detected across scanned targets stored in the database. This facilitates automated inventorying, filtering, and classification based on technologies identified by integrated detectors.
+
+This endpoint supports automated workflows that require enumeration of possible technology values for use in filtering or reporting.
+
+### Request
+- **Method:** `GET`
+- **URL:** `/api/results/technology`
+
+### Response Structure
+Returns a JSON object containing an array of unique technology names detected during scans.
+
+```json
+{
+  "technologies": [
+    "nginx",
+    "wordpress",
+    "jquery",
+    "bootstrap"
+  ]
+}
+```
+
+### Usage Example
+<CodeGroup>
+```http
+GET /api/results/technology HTTP/1.1
+Host: your-gowitness-host
+Accept: application/json
+```
+
+```json
+{
+  "technologies": [
+    "nginx",
+    "wordpress",
+    "jquery",
+    "bootstrap"
+  ]
+}
+```
+</CodeGroup>
+
+---
+
+## Integration Tips & Next Steps
+
+- Combine `/search` queries with filtering options in the `/results/gallery` endpoint for richer result notebooks.
+- Automate scan submission with `/submit` and leverage `/search` to monitor newly discovered technologies or failed scans.
+- Use the list of technologies as dropdown filters in your own reporting UI to empower user-driven data exploration.
+- Understand the data models in the great [API Reference Core Endpoints documentation](../../api-reference/core-endpoints/retrieve-results) for deeper integrations.
+
+### Related Documentation
+- [Submit Scan Request API](./submit-url) — Automate scan initiation
+- [Retrieve Results & Gallery API](./retrieve-results) — Browse scan results
+- [Database Statistics API](./database-statistics) — Gain metrics about scan volumes
+- [Authentication & Authorization](../api-auth-errors/authentication) — Secure API usage
+
+---
+
+## Summary
+The Search & Technology endpoints provide unparalleled flexibility to pinpoint scan results based on detailed content and metadata, as well as to systematically inventory detected technologies.
+
+Leveraging rich operator syntax in `/search` and the unique technology list in `/results/technology`, users can design robust, automated workflows for monitoring, reporting, and investigation.
+
+Careful composition of search queries and integration with submission and retrieval endpoints will maximize your automation and insight capabilities using gowitness’s API.
+
+---

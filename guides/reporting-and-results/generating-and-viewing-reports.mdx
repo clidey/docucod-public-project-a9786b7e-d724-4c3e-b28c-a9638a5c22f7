@@ -1,0 +1,173 @@
+---
+title: "Generating and Viewing Reports (CLI and Web UI)"
+description: "Master the process of building rich, shareable reports of your scan results. This tutorial covers HTML report generation, launching the web results server, and navigating interactive galleries of findings."
+---
+
+# Generating and Viewing Reports (CLI and Web UI)
+
+Master the process of building rich, shareable reports of your gowitness scan results. This guide walks you through generating static HTML reports from your scans, launching the interactive web UI server, and exploring your captured screenshots and metadata effectively.
+
+---
+
+## Workflow Overview
+
+### What This Guide Helps You Accomplish
+- Generate comprehensive HTML reports that bundle your screenshots and scan metadata into a single, shareable ZIP archive.
+- Start and use the gowitness web UI server to interactively browse your scan results.
+- List and view summary reports of your scans from CLI or JSON files.
+
+### Prerequisites
+- Completed one or more gowitness scans with output stored in either a supported database (SQLite, Postgres, or MySQL) or as a JSON Lines file.
+- Screenshots from your scans saved in a directory accessible to gowitness.
+- gowitness installed and runnable from your command line.
+
+### Expected Outcomes
+- A zipped HTML report ready for distribution or archival.
+- A running web UI exposing an interactive, searchable gallery of your scan results.
+- Command-line summaries of scan results for quick review and validation.
+
+### Time Estimate
+Approximately 5 to 10 minutes to generate reports and start the web UI, depending on scan and data size.
+
+### Difficulty Level
+Beginner to Intermediate
+
+---
+
+## Step-by-Step Instructions
+
+### 1. Generate a Static HTML Report
+
+The `report generate` command creates a self-contained HTML report ZIP that includes screenshots and metadata.
+
+<Steps>
+<Step title="Prepare Your Data Source">
+Ensure you have either a gowitness SQLite database or a JSON Lines file containing the scan results.
+</Step>
+<Step title="Run the Report Generation Command">
+Execute the command with your data source and screenshot directory:
+```bash
+gowitness report generate --db-uri sqlite://gowitness.sqlite3 --screenshot-path ./screenshots --zip-name ./gowitness-report.zip
+```
+If using a JSON Lines file instead of a database:
+```bash
+gowitness report generate --json-file ./gowitness.jsonl --screenshot-path ./screenshots
+```
+
+*Note*: The `--json-file` flag takes precedence over `--db-uri` if both are provided.
+</Step>
+<Step title="Locate the Generated ZIP">
+The resulting ZIP archive, by default named `gowitness-report.zip`, contains an `index.html` with your static report and a `screenshots/` directory.
+</Step>
+</Steps>
+
+**Expected Result:**
+- A ZIP file containing `index.html`, CSS, and all screenshots bundled nicely.
+
+---
+
+### 2. Start the Interactive Web UI Server
+
+Serve your scan results interactively with `report server`. This makes browsing easier with search, filtering, and detail views.
+
+<Steps>
+<Step title="Run the Web UI Server">
+Execute the command to start the server:
+```bash
+gowitness report server --port 7171 --db-uri sqlite://gowitness.sqlite3 --screenshot-path ./screenshots
+```
+Optionally specify `--host` to bind to a custom address (default: `127.0.0.1`).
+</Step>
+<Step title="Access the Web UI">
+Open your browser to `http://localhost:7171` to see the interactive gallery of screenshots and details.
+</Step>
+</Steps>
+
+**Expected Result:**
+- A fully functional web interface displaying your scan results with options to view, filter, and interact with captured data.
+
+---
+
+### 3. List Scan Summaries from CLI
+
+Get a quick tabular overview using the `report list` command.
+
+<Steps>
+<Step title="Invoke the List Command">
+To summarize scan results from a database:
+```bash
+gowitness report list --db-uri sqlite://gowitness.sqlite3
+```
+Or from a JSON Lines file:
+```bash
+gowitness report list --json-file ./gowitness.jsonl
+```
+</Step>
+<Step title="Review the Output">
+The CLI presents a styled table showing timestamps, statuses, URLs, titles, response sizes, and counts for network, console logs, headers, and cookies.
+</Step>
+</Steps>
+
+**Expected Result:** A clear, color-coded table summarizing scan results, highlighting successes and failures for quick validation.
+
+---
+
+## Examples & Command Recap
+
+```bash
+# Generate an HTML report with SQLite DB and screenshots
+gowitness report generate --db-uri sqlite://gowitness.sqlite3 --screenshot-path ./screenshots
+
+# Generate an HTML report from a JSON Lines file
+gowitness report generate --json-file ./gowitness.jsonl --screenshot-path ./screenshots
+
+# Start the web UI server with default port
+gowitness report server
+
+# Start the web UI server with custom port and DB path
+gowitness report server --port 8080 --db-uri /tmp/gowitness.sqlite3 --screenshot-path /tmp/screenshots
+
+# List summary from a database
+gowitness report list --db-uri sqlite://gowitness.sqlite3
+
+# List summary from JSON L file
+gowitness report list --json-file ./gowitness.jsonl
+```
+
+---
+
+## Troubleshooting & Tips
+
+<AccordionGroup title="Troubleshooting Common Issues">
+<Accordion title="The generate command fails with 'no data source defined'">
+Ensure you provide either `--db-uri` or `--json-file`. The `--json-file` flag takes precedence.
+</Accordion>
+<Accordion title="Screenshots are missing in the generated report ZIP">
+Verify the directory passed to `--screenshot-path` contains the screenshot files and is accessible.
+</Accordion>
+<Accordion title="Web UI server won't start or bind to port">
+Check if the port is free and you have permissions to bind. Try changing the `--port` or `--host` flags.
+</Accordion>
+<Accordion title="Report list shows empty or no results">
+Confirm your database or JSON Lines file contains valid scan results and is up to date.
+</Accordion>
+</AccordionGroup>
+
+<Tip>
+For automated workflows, generate static reports directly after scans for easy sharing without running a web server.
+</Tip>
+
+<Tip>
+When using the web UI server, consider running it on a secured network or behind a VPN to protect sensitive scan data.
+</Tip>
+
+---
+
+## Next Steps & Related Content
+
+- **Choosing Output Formats:** Learn how to optimize storage and reporting with [Choosing Output Formats and Storing Results Effectively](/guides/reporting-and-results/output-formats-best-practices).
+- **Merging and Converting Reports:** Combine or convert scan results with [Upgrading, Merging, and Converting Reports](/guides/reporting-and-results/upgrading-merging-and-converting-reports).
+- **First Scans & Validation:** If new to gowitness scanning, follow the [Running Your First Scan](/getting-started/your-first-scan/running-your-first-scan) and [Validating Results](/getting-started/your-first-scan/validating-results) guides.
+- **CLI Reference:** Explore `gowitness report` CLI commands further with `gowitness report -h` and subcommand help.
+
+By mastering these reporting capabilities, users gain actionable insights and effective sharing methods for their web reconnaissance efforts.

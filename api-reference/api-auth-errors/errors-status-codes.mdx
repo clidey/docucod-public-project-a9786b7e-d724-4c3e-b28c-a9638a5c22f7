@@ -1,0 +1,171 @@
+---
+title: "Error Handling & Status Codes"
+description: "Reference common API error responses, HTTP status codes, and semantic error messages to help you diagnose issues and design resilient integrations."
+---
+
+# Error Handling & Status Codes
+
+Effective error handling and clear status codes are vital for diagnosing issues quickly, building resilient integrations, and ensuring a smooth developer experience when working with the gowitness API. This reference page provides a comprehensive overview of the common HTTP status codes and semantic error messages you may encounter, along with practical guidance to anticipate and resolve them.
+
+---
+
+## 1. Overview of HTTP Status Codes Used by gowitness API
+
+gowitness API endpoints utilize standard HTTP status codes to communicate the outcome of API requests. Understanding these codes helps you interpret responses accurately and implement appropriate error handling in your applications.
+
+| Status Code | Meaning                 | When It Occurs                                     | Common Causes / Notes                                         |
+|-------------|-------------------------|---------------------------------------------------|--------------------------------------------------------------|
+| 200 OK      | Success                 | Request was processed successfully                 | Successful scan submission or results retrieval              |
+| 400 Bad Request | Client error          | Missing or invalid parameters in request          | Missing required fields like URLs or malformed JSON           |
+| 401 Unauthorized | Authentication failed | Access without valid credentials                   | Usually handled externally via reverse proxy Basic Auth     |
+| 404 Not Found | Resource not found      | Endpoint or resource does not exist                | Using incorrect API path or referring to invalid IDs         |
+| 500 Internal Server Error | Server failure | Unexpected server issues                           | Driver initialization failures, DB connection errors         |
+
+
+### Practical Tip
+Always check the response body for error message details on `400` or `500` status to better understand the failure cause.
+
+---
+
+## 2. Semantic Error Messages and Their Meanings
+
+gowitness API returns human-readable error messages alongside HTTP codes to aid troubleshooting. Here are the key errors you might encounter:
+
+| Error Message               | Context of Occurrence                         | Suggested Action                                                        |
+|-----------------------------|-----------------------------------------------|------------------------------------------------------------------------|
+| "No URL provided"          | Submit Single endpoint called without a URL  | Ensure the `url` field in the request body is correctly set            |
+| "No URLs provided"         | Submit endpoint called with empty URL list   | Provide at least one URL in the `urls` array                           |
+| "Error reading JSON request" | Malformed or invalid JSON in request body  | Validate the JSON payload and use proper content headers (`application/json`) |
+| "Error starting driver"    | Failed to initialize Chrome driver            | Verify Chrome settings, driver availability, and system requirements   |
+| "Error starting runner"    | Runner initiation issues                        | Check dependency health and configuration correctness                 |
+| "Error getting a memory writer" | In-memory result buffer allocation failed | Ensure system memory is sufficient                                    |
+| "Error creating JSON response" | Response marshalling failure               | Report or debug internal serialization bugs                           |
+
+---
+
+## 3. Diagnostic Workflow for Common API Errors
+
+When your integration encounters errors, following these steps helps you identify and solve issues promptly:
+
+<Steps>
+<Step title="Check HTTP Status Code">
+Confirm whether the status code indicates client or server errors (400 or 500 series). This guides the troubleshooting direction.
+</Step>
+<Step title="Review Error Message in Response">
+Look at the error text in the response body. It often pinpoints missing parameters, format issues, or internal errors.
+</Step>
+<Step title="Verify Request Payload and Headers">
+Ensure your request includes valid JSON, required fields, and correct content type headers (`application/json`).
+</Step>
+<Step title="Confirm Authentication Setup">
+Verify that the access control mechanism (often Basic Auth at reverse proxy) is correctly configured and credentials are supplied.
+</Step>
+<Step title="Check Server Environment and Logs">
+If server-side errors persist, review server logs for Chrome driver availability, disk permissions, and database connectivity problems.
+</Step>
+<Step title="Retry with Simplified Requests">
+Try submitting a minimal valid request (e.g., single URL with default options) to isolate the problem.
+</Step>
+</Steps>
+
+---
+
+## 4. Example Error Handling with Submit Single Endpoint
+
+When submitting a scan request for a single URL via the `/submit/single` endpoint, be prepared for the following errors:
+
+### Scenario: Missing URL Field
+
+**Request:**
+```json
+{
+  "url": "",
+  "options": {
+    "timeout": 10
+  }
+}
+```
+
+**Response:**
+- Status: 400 Bad Request
+- Body: "No URL provided"
+
+### Scenario: Malformed JSON Body
+
+**Request:**
+```json
+{ "url": "https://example.com",
+```
+(missing closing brace)
+
+**Response:**
+- Status: 500 Internal Server Error
+- Body: "Error reading JSON request"
+
+### Scenario: Internal Driver Failure
+
+This occurs when the Chrome driver fails to start due to environmental issues.
+
+**Response:**
+- Status: 500 Internal Server Error
+- Body: "Error starting driver"
+
+### Handling in Code Example (Go):
+```go
+resp, err := http.Post(apiURL, "application/json", bytes.NewBuffer(jsonPayload))
+if err != nil {
+    log.Fatalf("Request failed: %v", err)
+}
+if resp.StatusCode != http.StatusOK {
+    var errorMsg string
+    body, _ := io.ReadAll(resp.Body)
+    errorMsg = string(body)
+    log.Fatalf("API error: %s (status %d)", errorMsg, resp.StatusCode)
+}
+// proceed with reading successful response
+```
+
+---
+
+## 5. Best Practices to Build Resilient Integrations
+
+- **Validate Inputs Before Submission**: Ensure JSON payloads are well-formed and required fields are present.
+- **Handle Non-200 Status Codes Explicitly**: Implement logic to inspect status codes and associated messages.
+- **Implement Retries with Backoff for Transient Errors**: For 500-level errors, retry requests thoughtfully.
+- **Log Detailed Error Information**: Capture error responses and codes for debugging.
+- **Use Debug or Verbose Logging During Development**: Helps in diagnosing driver or runner issues.
+- **Keep API Client and gowitness Server Versions Compatible**: Avoid issues caused by mismatches.
+
+---
+
+## 6. Summary Table of Key API Endpoints and Their Error Responses
+
+| Endpoint               | Common Error Codes | Common Error Messages                   | Description                                |
+|------------------------|--------------------|----------------------------------------|--------------------------------------------|
+| POST `/submit`         | 400, 500           | "No URLs provided", "Error starting runner" | Batch scan submission                      |
+| POST `/submit/single`  | 400, 500           | "No URL provided", "Error starting driver"  | Single scan submission                     |
+| POST `/search`         | 500                | "Error reading JSON request"            | Search query processing                    |
+| GET `/statistics`      | 500                | Database errors                         | DB size and response code stats retrieval |
+
+---
+
+For advanced troubleshooting during scan operations, refer to the [Troubleshooting Common Issues](/getting-started/your-first-scan/troubleshooting-common-issues) guide, which offers strategies to handle driver, permission, and network-related errors.
+
+---
+
+## 7. Related Documentation
+
+- [API Authentication & Authorization](/api-reference/api-auth-errors/authentication): Learn about securing API access.
+- [Submitting URLs for Scanning](/api-reference/core-endpoints/submit-url): Details on the scan submission endpoints.
+- [Retrieve Results & Gallery API](/api-reference/core-endpoints/retrieve-results): How to handle response data.
+- [Troubleshooting Common Issues](/getting-started/your-first-scan/troubleshooting-common-issues): In-depth troubleshooting.
+
+---
+
+_This documentation page is part of the [gowitness API Reference](https://github.com/sensepost/gowitness). For the full API specification and integration guides, visit the main [API Reference section](/api-reference)._
+
+---
+
+<Info>
+If you encounter unexpected errors or need tailored error handling, consider enabling detailed logging on your gowitness instance by setting `--log-scan-errors` flag for scans or reviewing server logs to glean underlying causes.
+</Info>

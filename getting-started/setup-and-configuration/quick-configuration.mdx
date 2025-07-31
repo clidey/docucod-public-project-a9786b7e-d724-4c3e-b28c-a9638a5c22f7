@@ -1,0 +1,231 @@
+---
+title: "Quick Configuration"
+description: "Explains how to initialize gowitness, review or adjust key configuration flags, and prepare basic setup for scanning and output. Includes recommended default options and locations for writing results and screenshots."
+---
+
+# Quick Configuration Guide for gowitness
+
+This guide will walk you through initializing gowitness, reviewing and adjusting key configuration flags, and preparing a basic setup for scanning and output. It highlights recommended default options and locations for storing your results and screenshots so you can quickly get started with effective scanning.
+
+---
+
+## 1. Understanding gowitness Configuration
+
+gowitness is a powerful web screenshot and information-gathering tool that uses configurable flags to control its behavior. This configuration affects how gowitness scans targets, handles browsers, saves output, and logs information. Getting your configuration right is essential for smooth and effective scanning.
+
+### Why Is Quick Configuration Important?
+- **Streamlines your first scans** by pre-setting sane defaults.
+- **Customizes output locations** so your results and screenshots are easy to find.
+- **Adjusts scanning performance and behavior** to fit your environment.
+
+---
+
+## 2. Initializing gowitness and Reviewing Configuration Flags
+
+You start gowitness commands through the CLI, where you can set flags specific to scanning or output.
+
+### Common Configuration Flags and Their Purposes
+
+| Flag                         | Purpose                                                       | Default Value            |
+|------------------------------|---------------------------------------------------------------|-------------------------|
+| `--driver`                   | Selects scanning driver (`chromedp` or `gorod`)              | `chromedp`              |
+| `--threads`, `-t`            | Number of concurrent scanning threads                         | 6                       |
+| `--timeout`, `-T`            | Seconds before a scan times out                               | 60                      |
+| `--delay`                   | Seconds delay before screenshot capture                       | 3                       |
+| `--screenshot-path`, `-s`   | Directory path where screenshots are saved                    | `./screenshots`          |
+| `--screenshot-format`       | Format for screenshots (`jpeg` or `png`)                      | `jpeg`                   |
+| `--screenshot-fullpage`     | Capture full-page screenshots (instead of viewports)          | false                   |
+| `--write-db`                | Enable writing results to a SQLite (or other) database       | false                   |
+| `--write-jsonl`             | Write results as JSON Lines                                    | false                   |
+| `--write-csv`               | Save results in CSV format                                    | false                   |
+| `--write-stdout`            | Output results to stdout (useful in scripting)                | false                   |
+| `--quiet`, `-q`             | Silence most logging output                                   | false                   |
+| `--debug-log`, `-D`         | Enable detailed debug logging                                 | false                   |
+
+
+### How to View Available Flags
+
+Run:
+
+```bash
+gowitness scan --help
+```
+
+This command lists all flags and their descriptions.
+
+---
+
+## 3. Setting Up Your Basic gowitness Configuration
+
+Follow these steps to get your environment ready for scanning:
+
+<Steps>
+<Step title="Step 1: Select Your Scan Driver">
+Choose the scan engine:
+- Use `chromedp` for Chrome Headless integration (default, recommended).
+- Use `gorod` for a different scan driver (less common).
+
+Example:
+
+```bash
+gowitness scan --driver chromedp
+```
+</Step>
+<Step title="Step 2: Configure Concurrency and Timing">
+Control scan speed and timeout:
+- Set number of threads (`-t`) based on your system resources.
+- Adjust timeout (`-T`) to prevent hanging on slow targets.
+- Use delay (`--delay`) to wait before screenshot capture, useful for dynamic pages.
+
+Example:
+
+```bash
+gowitness scan --threads 10 --timeout 45 --delay 2
+```
+</Step>
+<Step title="Step 3: Define Screenshot Storage Location">
+Specify where screenshots will be saved:
+- Default is `./screenshots`.
+- Use `--screenshot-path` to set a custom directory.
+
+Example:
+
+```bash
+gowitness scan --screenshot-path /var/gowitness/screenshots
+```
+
+Ensure the directory exists or gowitness has permission to create it.
+</Step>
+<Step title="Step 4: Choose Screenshot Format and Quality">
+Control the format of screenshots:
+- Options: `jpeg` (default) or `png`.
+- Enable full-page screenshots with `--screenshot-fullpage`.
+
+Example:
+
+```bash
+gowitness scan --screenshot-format png --screenshot-fullpage
+```
+</Step>
+<Step title="Step 5: Enable Result Output Writers">
+By default, gowitness saves only screenshots without metadata.
+- Enable results saving using `--write-db`, `--write-jsonl`, or `--write-csv`.
+- Use `--write-stdout` to print results to the terminal or for piping to other tools.
+
+Example:
+
+```bash
+gowitness scan --write-db --write-jsonl
+```
+
+This ensures your scan data is persisted for reporting or later analysis.
+</Step>
+<Step title="Step 6: Adjust Logging and Debugging">
+Control how much information gowitness outputs:
+- Use `--quiet` to minimize logs.
+- Use `--debug-log` to see detailed operational info.
+
+Example:
+
+```bash
+gowitness scan --debug-log
+```
+
+This helps with troubleshooting or understanding scan progress.
+</Step>
+</Steps>
+
+---
+
+## 4. Example: Quick Configuration for a Basic Scan
+
+Let’s say you want to scan a list of URLs and save both screenshots and scan results in JSON lines format.
+
+Run:
+
+```bash
+gowitness scan file -f targets.txt --threads 10 --write-jsonl --screenshot-path ./output/screenshots
+```
+
+This command instructs gowitness to:
+- Read targets from `targets.txt`.
+- Use 10 concurrent threads.
+- Save screenshots under `./output/screenshots`.
+- Save metadata results in JSON lines format (default file `gowitness.jsonl`).
+
+---
+
+## 5. Confirming Your Configuration
+
+After running gowitness for the first time, verify:
+
+- Screenshots are saved in the specified folder with the expected format.
+- Metadata files (JSONL, CSV, or DB) exist at the specified paths.
+- Log output matches your logging preferences (quiet vs debug).
+
+If files do not appear as expected, review the flag settings and permissions.
+
+---
+
+## 6. Practical Tips and Best Practices
+
+- **Use relative paths** for easy portability in scripts.
+- **Start small** with a low thread count and increase as you verify resources.
+- **Separate scans by project** using different screenshot paths and databases.
+- When saving metadata, SQLite databases (`--write-db`) provide efficient querying.
+- Use `--write-stdout` in pipelines for quick result filtering.
+- Enable debug logs only for troubleshooting to avoid clutter.
+- Ensure Chrome or the selected driver is properly installed or accessible.
+
+---
+
+## 7. Troubleshooting Quick Configuration
+
+<AccordionGroup title="Common Configuration Issues">
+<Accordion title="Screenshots Not Saved">
+Check:
+- Is the `--screenshot-path` directory writable?
+- Is `--screenshot-skip-save` enabled? Disable to save.
+- Is `--write-screenshots` enabled if you want screenshots saved via writers?
+</Accordion>
+<Accordion title="No Result Metadata Files Created">
+Verify:
+- You enabled one or more result writers: `--write-db`, `--write-jsonl`, or `--write-csv`.
+- The specified output location paths are writable.
+- Check logs for any errors related to writing files or databases.
+</Accordion>
+<Accordion title="Scan Driver Errors">
+If scanning fails:
+- Confirm Chrome is installed or provide `--chrome-path`.
+- Check proxy settings if used with `--chrome-proxy`.
+- Review driver setting: `--driver chromedp` is default and recommended.
+</Accordion>
+<Accordion title="Logging Output Too Verbose or Too Quiet">
+- Use `--quiet` to suppress most logs.
+- Use `--debug-log` to enable detailed logs.
+- Avoid using both simultaneously.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 8. Next Steps
+
+Now that your gowitness configuration is set:
+
+- Proceed to [Running Your First Scan](/getting-started/your-first-scan/running-your-first-scan) to practice scanning targets.
+- Learn about [Understanding Output Formats](/getting-started/setup-and-configuration/understanding-output-formats) to manage and interpret your results.
+- Explore advanced configuration and reporting through other guides and the API documentation.
+
+---
+
+## 9. Additional Resources
+
+- [System Requirements & Prerequisites](/getting-started/getting-ready/system-requirements)
+- [Installing gowitness](/getting-started/getting-ready/installing-gowitness)
+- [Scanning Workflows Guide](/guides/scanning-workflows/quickstart-single-scan)
+- [gowitness GitHub Repository](https://github.com/sensepost/gowitness)
+
+---
+
+By following this quick configuration guide, you will be well-prepared to run effective scans with gowitness, capturing valuable website snapshots and metadata for your security research or auditing needs.

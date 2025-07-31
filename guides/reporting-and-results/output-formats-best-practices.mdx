@@ -1,0 +1,236 @@
+---
+title: "Choosing Output Formats and Storing Results Effectively"
+description: "Understand gowitness's diverse output options, including SQLite, JSON Lines, and CSV. Learn to select the right output strategy for your workflow, manage storage, and apply best practices for organization and retrieval."
+---
+
+
+# Choosing Output Formats and Storing Results Effectively
+
+This guide helps you understand the different output options that gowitness supports for storing scan results. Choosing the right format will optimize your workflow, ensure efficient data management, and streamline how you organize and retrieve your scan data.
+
+---
+
+## 1. Overview
+
+**What this page covers:**
+- Understanding gowitness output formats: SQLite database, JSON Lines, CSV, and Stdout
+- Selecting the correct output format based on your use case
+- Best practices for managing storage and organizing scan results
+- Key considerations when converting or merging data
+
+**Why it matters:**
+Choosing the right output format directly impacts how easily you can access, analyze, and share your scan results. This guide equips you with the knowledge to pick the best format for your tasks and keep your data organized.
+
+---
+
+## 2. Output Formats Supported by gowitness
+
+gowitness supports multiple output methods to store scan metadata and screenshot references. Each serves different purposes and scenarios.
+
+### 2.1 SQLite Database
+
+- **Description:**
+  A lightweight, local SQL database (default file `.sqlite3`) that stores comprehensive scan results.
+- **Advantages:**
+  - Structured data storage with relational capabilities
+  - Supports complex queries and filtering
+  - Ideal for long-term storage and integration with reporting tools
+  - Supports grouping of similar screenshots through perception hash grouping
+- **How to use:**
+  Use the `--write-db` flag along with `--write-db-uri` to specify the SQLite database location.
+
+### 2.2 JSON Lines (`.jsonl`)
+
+- **Description:**
+  Stores results as individual JSON objects per line.
+- **Advantages:**
+  - Human-readable and easy to parse with standard tools
+  - Great for streaming or partial ingestion scenarios
+  - Portable and language-agnostic
+- **How to use:**
+  Use the `--write-jsonl` flag along with `--write-jsonl-file` to specify the output file.
+
+### 2.3 CSV Files
+
+- **Description:**
+  CSV format with a fixed set of columns representing key scan data.
+
+- **Advantages:**
+  - Easy to open and manipulate in spreadsheet applications
+  - Suitable for simple data exports or integrations
+- **Limitations:**
+  - Limited columns; excludes complex or nested data
+  - Not ideal for large, detailed result sets
+- **How to use:**
+  Use `--write-csv` flag along with `--write-csv-file` to specify the CSV file path.
+
+### 2.4 Stdout
+
+- **Description:**
+  Outputs successful scan URLs directly to standard output.
+
+- **Advantages:**
+  - Useful for shell pipelines and chaining commands
+  - Minimal data for quick filtering or scripting
+- **How to use:**
+  Use `--write-stdout` to enable.
+
+---
+
+## 3. Selecting the Right Output Format
+
+Your choice of output depends on the goals, scale, and tools you work with.
+
+| Goal / Scenario                             | Recommended Format              |
+|--------------------------------------------|--------------------------------|
+| Long-term, queryable result storage        | SQLite database                |
+| Lightweight, portable, easy-to-parse logs  | JSON Lines                    |
+| Viewing results in spreadsheets             | CSV                           |
+| Quick command piping (e.g., filtering URLs) | Stdout                       |
+
+### Practical tips:
+
+- For most users, SQLite databases are the go-to choice because they support full-featured queries and compatible reporting generation.
+
+- Use JSON Lines when you need easily shareable logs or want to integrate with tools that accept plain JSON inputs.
+
+- CSV output is best for quick exports or when you need to manipulate data in Excel or similar tools.
+
+- You can combine multiple writers to simultaneously output in different formats.
+
+---
+
+## 4. Managing Storage and Organization
+
+### 4.1 Directory and File Management
+
+- Store your screenshot images separately in a consistent directory (default `./screenshots`).
+- Align your metadata output files (database, JSONL, CSV) in predictable locations for easy reference.
+- Use descriptive file names and directory paths when running multiple scans to avoid overwriting data.
+
+### 4.2 Screenshot Storage Options
+
+- Screenshots are saved on disk by default; however, you can configure gowitness to store screenshots inside the output writers (e.g., into the database) via `--write-screenshots` when supported.
+
+- Keeping screenshots separate allows for easier management and reduces database size.
+
+### 4.3 Data Integrity and Duplication
+
+- When using databases, gowitness applies perception hash grouping to cluster visually similar screenshots. This helps reduce duplication in analysis.
+
+- JSON Lines and CSV do not have built-in grouping but are straightforward for appending new data.
+
+---
+
+## 5. Converting Between Formats
+
+gowitness allows converting between SQLite database and JSON Lines formats using the `report convert` command.
+
+### How to convert:
+
+```bash
+# Convert from SQLite to JSON Lines
+gowitness report convert --from-file gowitness.sqlite3 --to-file gowitness.jsonl
+
+# Convert from JSON Lines to SQLite
+gowitness report convert --from-file gowitness.jsonl --to-file gowitness.sqlite3
+```
+
+**Important:**
+- Source and destination files must have different supported extensions (`.sqlite3` or `.jsonl`).
+- Conversion preserves all detailed results.
+
+---
+
+## 6. Step-by-Step Example: Using SQLite and JSON Lines Together
+
+<Steps>
+<Step title="Run a scan writing to both SQLite and JSON Lines">
+Your scan command can specify multiple writers (e.g., database and JSON Lines) to output results in parallel:
+
+```bash
+gowitness scan file -f targets.txt --write-db --write-jsonl
+```
+
+This stores results in the default SQLite database and a JSON Lines file.
+
+</Step>
+<Step title="Listing stored results">
+You can list results from either format using the `report list` command:
+
+- From SQLite database:
+
+```bash
+gowitness report list --db-uri sqlite://gowitness.sqlite3
+```
+
+- From JSON Lines file:
+
+```bash
+gowitness report list --json-file gowitness.jsonl
+```
+
+</Step>
+<Step title="Generate a static HTML report">
+Use the stored data to create a portable report archive:
+
+```bash
+gowitness report generate --db-uri sqlite://gowitness.sqlite3 --screenshot-path ./screenshots
+```
+
+Or
+
+```bash
+gowitness report generate --json-file gowitness.jsonl --screenshot-path ./screenshots
+```
+
+</Step>
+</Steps>
+
+---
+
+## 7. Common Pitfalls and Troubleshooting
+
+<AccordionGroup title="Troubleshooting Output Formats">
+<Accordion title="Can't open or write to the output database or file">
+- Verify you have correct write permissions to the output directory.
+- Ensure the file path exists or gowitness can create the path.
+- For databases, avoid opening the same file in multiple processes simultaneously.
+</Accordion>
+<Accordion title="Output file grows too large (JSON Lines or CSV)">
+- Limit the number of targets per scan.
+- Consider using SQLite for better data compaction and indexing.
+</Accordion>
+<Accordion title="Data appears incomplete or missing fields">
+- Confirm you are not using CSV for detailed metadata (CSV is limited).
+- Check if the `--skip-html` or `--save-content` flags affect what data is stored.
+</Accordion>
+<Accordion title="Conversion errors between SQLite and JSON Lines">
+- Confirm source and target files have correct extensions.
+- Ensure source file is not corrupted.
+- Avoid converting files to the same format.
+</Accordion>
+</AccordionGroup>
+
+---
+
+## 8. Best Practices
+
+- Regularly backup your SQLite databases to preserve scan history.
+- Use descriptive file names for output to manage multiple scans.
+- Combine output writers thoughtfully to balance performance and storage.
+- Clean up old screenshots and output files to free disk space.
+- When automating, include checksum or hash verification to detect corrupted data.
+
+---
+
+## 9. Additional Resources
+
+- [Running Your First Scan](https://docs.gowitness.io/getting-started/your-first-scan/running-your-first-scan)
+- [Validating and Viewing Results](https://docs.gowitness.io/getting-started/your-first-scan/validating-results)
+- [Generating and Viewing Reports](https://docs.gowitness.io/guides/reporting-and-results/generating-and-viewing-reports)
+- [Converting between Formats](https://docs.gowitness.io/guides/reporting-and-results/upgrading-merging-and-converting-reports)
+
+---
+
+**By understanding gowitness's output formats and their strengths, you empower yourself to manage scan results efficiently, support your workflows, and maximize the value of your reconnaissance data.**
