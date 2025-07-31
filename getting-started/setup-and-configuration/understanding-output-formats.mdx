@@ -3,4 +3,150 @@ title: "Understanding Output Formats"
 description: "Describes the various formats gowitness supports for storing scan results—SQLite, JSON Lines, CSV, and more. Offers guidance on selecting formats based on intended use cases and previews where data and screenshots can be found after scanning."
 ---
 
-*This page will automatically be generated from the codebase*
+# Understanding Output Formats
+
+gowitness supports a variety of output formats to store and manage the results of your website scanning operations. Choosing the right format depends on your workflow, the tools you integrate with, and how you want to analyze or automate result handling. This guide describes the main output formats available in gowitness and guides you on how to find your data and screenshots after a scan.
+
+---
+
+## 1. Supported Output Formats
+
+gowitness can write scan results in the following formats:
+
+### a. SQLite Database
+
+- **Description:** Stores all scan results in a structured SQLite database file.
+- **Use Case:** Ideal for large scan collections where relational queries, web UI integration, or API access is desired.
+- **Data Stored:** Full scan metadata including URLs, HTTP response details, screenshots filenames, technologies detected, TLS info, headers, network logs, console logs, and cookies.
+- **Location:** By default, stored in a file like `gowitness.sqlite3`.
+
+### b. JSON Lines
+
+- **Description:** Outputs results as individual JSON objects written line-by-line to a text file.
+- **Use Case:** Suited for pipeline processing, integration with other JSON-compatible tools, or export/import where a lightweight, easy-to-manipulate format is preferred.
+- **Data Stored:** Full scan results serialized as JSON, matching the structure of the `Result` model.
+- **Location:** Default files have extensions like `.jsonl` and can be specified explicitly.
+
+### c. CSV (Comma-Separated Values)
+
+- **Description:** Provides a tabular summary of scan results with key fields.
+- **Use Case:** Useful for quick summaries, importing data into spreadsheets, or tools expecting tabular formats.
+- **Data Stored:** Typically includes fields like URL, response code, title, timestamps, and failure status. Does not include complex nested data like screenshots or network logs.
+
+### d. Stdout (Console Output)
+
+- **Description:** Writes basic scan results directly to the command line output.
+- **Use Case:** Useful for quick instant feedback or scripts that parse stdout.
+- **Data Stored:** Typically only the scanned URLs or minimal info.
+
+---
+
+## 2. How Data is Structured in Results
+
+Each scan result (`Result` object) contains rich metadata about the probed URL. Key fields include:
+
+- `URL` and `FinalURL` - Original and redirected URLs.
+- `ProbedAt` - Timestamp of when scanning occurred.
+- `ResponseCode` and `ResponseReason` - HTTP status.
+- `Title` - HTML title tag contents.
+- `Screenshot` and `Filename` - Image data path and name.
+- `Failed` and `FailedReason` - Flags for errors.
+- `Technologies` - Technologies detected on the page.
+- `TLS` - TLS certificate details if HTTPS is used.
+- `Headers`, `Network`, `Console`, and `Cookies` - Additional captured HTTP headers, network requests, browser console logs, and cookies.
+
+This comprehensive data supports both visual and automated analysis.
+
+---
+
+## 3. Choosing the Right Output Format
+
+When deciding which output format to use, consider your following needs:
+
+| Need                                 | Recommended Format         | Reason                                                          |
+|--------------------------------------|----------------------------|-----------------------------------------------------------------|
+| Web UI integration and persistent storage | SQLite Database            | Structured, supports complex queries and fast retrieval        |
+| Lightweight, streamable log storage   | JSON Lines                 | Easily parsed by scripts and external tools                    |
+| Quick spreadsheet summaries           | CSV                        | Compatible with Excel, Google Sheets, simple visual reviews    |
+| Quick command-line feedback           | Stdout                    | Instant visibility, minimal data                               |
+
+Additionally, gowitness can be configured to output to multiple formats in the same scanning session if needed.
+
+---
+
+## 4. Locating Data and Screenshots After Scanning
+
+### a. Screenshots
+
+All screenshots captured during scanning are saved as image files (generally PNG or PDF) with filenames linked to the scan results. Their locations are:
+
+- For database and JSON Line outputs, the screenshot filenames are stored in the `Filename` field of the results.
+- These files reside in the configured output directory (default or user-specified) alongside your data files.
+
+### b. Scan Data
+
+- **SQLite**: The `.sqlite3` file holds all metadata; use the gowitness web UI or CLI to query.
+- **JSON Lines**: Each line is a JSON object representing a scan result; can be processed with tools like `jq` or imported into databases.
+- **CSV**: Contains summarized fields; open with spreadsheet apps.
+- **Stdout**: Data streams directly to your terminal for immediate reading.
+
+---
+
+## 5. Examples of Using Output Formats
+
+### Writing to JSON Lines
+
+```bash
+gowitness scan --url https://example.com --format jsonl --destination ./gowitness.jsonl
+```
+
+- This command performs a scan and writes each result as a JSON object appended to `gowitness.jsonl`.
+
+### Using the SQLite database (default)
+
+```bash
+gowitness scan --url https://example.com --db-uri sqlite://gowitness.sqlite3
+```
+
+- Stores results in `gowitness.sqlite3` for use with the gowitness web UI or CLI report commands.
+
+### Viewing output on stdout
+
+```bash
+gowitness scan --url https://example.com --format stdout
+```
+
+- Simply prints the scanned URL results as text in the terminal.
+
+---
+
+## 6. Practical Tips & Best Practices
+
+- **Consistency:** Use the SQLite database for projects requiring integration with the web UI, querying, and long-term storage.
+- **Flexibility:** JSON Lines allow easy integration with scripting or data processing pipelines.
+- **Efficiency:** Use CSV if you only need high-level scan summaries to import into spreadsheet software.
+- **File Management:** Organize screenshots and output files in dedicated directories for easy retrieval.
+- **Backup:** Regularly back up SQLite or JSONL files to avoid data loss.
+
+---
+
+## 7. Common Pitfalls & Troubleshooting
+
+- **Missing Screenshots:** Ensure the output directory has write permissions and enough disk space.
+- **Incomplete JSON Lines:** Check that scanning operations were not interrupted and the output file is not corrupted.
+- **Database Lock Issues:** Avoid editing the SQLite file while scanning is ongoing.
+- **Format Selection:** Confirm the `--format` flag matches exactly the desired output type (`jsonl`, `sqlite`, `csv`, `stdout`) to prevent empty or unexpected outputs.
+
+---
+
+## 8. Where to Go from Here
+
+- Visit [Running Your First Scan](/getting-started/your-first-scan/running-your-first-scan) to learn how to execute scans and generate output.
+- Explore [Validating and Viewing Results](/getting-started/your-first-scan/validating-results) to understand how to review your stored scan data.
+- Review [Choosing Output Formats and Storing Results Effectively](/guides/reporting-and-results/output-formats-best-practices) for advanced scenarios and recommendations.
+
+---
+
+By understanding gowitness's output formats and their appropriate use cases, you can tailor your scanning workflows for optimal efficiency and effectiveness.
+
+---
