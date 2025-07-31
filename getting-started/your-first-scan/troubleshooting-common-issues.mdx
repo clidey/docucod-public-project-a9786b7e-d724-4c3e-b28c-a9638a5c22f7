@@ -3,4 +3,197 @@ title: "Troubleshooting Common Issues"
 description: "Anticipates initial setup hurdles such as missing dependencies, driver issues, permission problems, or network errors. Provides practical tips and references for resolving the most frequent problems users may encounter getting started."
 ---
 
-*This page will automatically be generated from the codebase*
+# Troubleshooting Common Issues
+
+Starting your journey with gowitness can occasionally present hurdles that interrupt your initial scans or setup. This guide anticipates those early obstacles—such as missing dependencies, driver launch issues, permission errors, and network problems—and provides clear, actionable advice to help you identify and resolve these common problems swiftly.
+
+---
+
+## 1. Missing Dependencies or Chrome Driver Problems
+
+gowitness relies on an instance of Chrome (via headless Chrome drivers like `chromedp`) to capture screenshots. Ensuring a proper Chrome environment is critical.
+
+### Symptoms
+- Errors relating to Chrome launch failures
+- Messages indicating no Chrome binary found
+- Timeouts waiting for Chrome to start
+
+### Resolution Steps
+1. **Verify Chrome Installation:**
+   - Confirm that Google Chrome or Chromium is installed on your system.
+   - gowitness can auto-download a platform-appropriate Chrome binary if none is found, but this requires internet access.
+
+2. **Specify a Chrome Binary Manually:**
+   - Use the `--chrome-path` flag with the exact path to the Chrome or Chromium executable.
+   - Example:
+     ```bash
+     gowitness scan single -u https://example.com --chrome-path /usr/bin/google-chrome
+     ```
+
+3. **Check WebSocket Debugger URL (Advanced):**
+   - If you are connecting to a remote Chrome instance, specify `--chrome-wss-url` with a valid Chrome Debugger WebSocket URL.
+
+4. **Validate Permissions:**
+   - Ensure the current user has permission to execute the Chrome binary.
+
+<Tip>
+If automatic Chrome download fails due to network restrictions, manually installing Chrome and specifying the path is the most reliable workaround.
+</Tip>
+
+---
+
+## 2. Permission Issues with Screenshot Directory
+
+gowitness saves screenshots locally by default, using the directory specified by `--screenshot-path` (default is `./screenshots`). Permission problems with this directory will cause scan failures or missing files.
+
+### Symptoms
+- Errors indicating failure to write screenshots or missing screenshot files after scan
+
+### Resolution Steps
+1. **Verify Directory Access:**
+   - Check if the directory exists and that your user account has write permissions.
+   - Use commands like:
+     ```bash
+     ls -ld ./screenshots
+     chmod u+w ./screenshots
+     ```
+
+2. **Create Directory Manually:**
+   - If the directory doesn’t exist, create it explicitly before running gowitness:
+     ```bash
+     mkdir -p ./screenshots
+     ```
+
+3. **Use a Custom Path:**
+   - Use the `--screenshot-path` flag to specify a directory where you have write permissions.
+   - Example:
+     ```bash
+     gowitness scan single -u https://example.com -s /tmp/gowitness-screens
+     ```
+
+---
+
+## 3. Network and URL Accessibility Problems
+
+gowitness scans require network connectivity to target URLs. Common errors arise from DNS failures, firewalls, or malformed URLs.
+
+### Symptoms
+- Timeouts or connection refused errors
+- No response or incomplete metadata
+
+### Resolution Steps
+1. **Validate URLs Carefully:**
+   - Ensure target URLs are properly formatted, including correct protocols (`http://` or `https://`).
+   - Use `--no-http` or `--no-https` flags to control protocol injection for scan commands that ingest URLs from files.
+
+2. **Check Network Connectivity:**
+   - Confirm your system can reach target hosts using `ping` or `curl`.
+     ```bash
+     curl -I https://targetdomain.com
+     ```
+
+3. **Proxy and Firewall Considerations:**
+   - If behind a corporate proxy, use the `--chrome-proxy` flag to specify a proxy (e.g., `http://proxyaddress:port`).
+   - Confirm firewall rules allow outbound traffic on scanning ports (especially 80 and 443).
+
+4. **Increase Timeout or Delay:**
+   - Use flags like `--timeout` and `--delay` to extend waits on slow networks or servers.
+   - Example:
+     ```bash
+     gowitness scan single -u https://slow-site.com --timeout 120 --delay 5
+     ```
+
+---
+
+## 4. Scan Driver Errors and Debugging
+
+gowitness supports multiple drivers (`chromedp` by default and `gorod` as alternative). Problems with driver initialization will block scans.
+
+### Symptoms
+- Error messages citing invalid driver
+- Driver launch failures
+
+### Resolution Steps
+1. **Ensure Valid Driver Selection:**
+   - Use `--driver chromedp` or `--driver gorod`. Any other value will fail.
+
+2. **Enable Debug Logging:**
+   - Add `--log-scan-errors` and `--debug` flags to get detailed error logs.
+   - Example:
+     ```bash
+     gowitness scan single -u https://example.com --log-scan-errors --debug
+     ```
+
+3. **Validate Driver Dependencies:**
+   - For `gorod`, ensure all [prerequisites](https://github.com/go-rod/rod#requirements) are met.
+
+---
+
+## 5. Database and Output File Access Issues
+
+When configuring metadata outputs via flags like `--write-db`, `--write-jsonl`, or `--write-csv`, permissions or filepath errors may prevent successful writes.
+
+### Symptoms
+- Errors opening or writing to output files
+- Missing data despite scan success
+
+### Resolution Steps
+1. **Validate File or Database Path:**
+   - For database URIs, ensure the path is writable and directories exist.
+   - Example URI: `sqlite://gowitness.sqlite3`
+
+2. **Create Parent Directories:**
+   - Ensure any folders in the output path exist.
+
+3. **File Lock Conflicts:**
+   - Avoid running multiple concurrent scans writing to the same output.</pre>
+
+---
+
+## 6. Common Command Usage Mistakes
+
+### Remember:
+- When scanning, if you want metadata beyond screenshots, explicitly include writer flags like `--write-db` or `--write-jsonl`.
+- If no writers are configured, a warning will appear.
+
+### Example Correct Usage:
+```bash
+gowitness scan single -u https://example.com --write-jsonl
+```
+
+If you omit `--write-jsonl` or similar, only screenshots will be saved, which limits post-scan processing.
+
+---
+
+## 7. Diagnosing with Logs and Reports
+
+To better understand what went wrong:
+
+- Use the `gowitness report list` command to inspect recorded results and failures.
+- Enable verbose logging with `--debug` and `--log-scan-errors`.
+
+Example:
+```bash
+gowitness report list --db-uri sqlite://gowitness.sqlite3
+```
+
+The report list output highlights failed scans, HTTP status codes, and encountered errors.
+
+---
+
+## Additional Resources
+
+- [System Requirements & Prerequisites](https://docs.sensepost.com/gowitness/getting-started/getting-ready/system-requirements) — confirm your environment setup.
+- [Installing gowitness](https://docs.sensepost.com/gowitness/getting-started/getting-ready/installing-gowitness) — ensure correct installation.
+- [Running Your First Scan](https://docs.sensepost.com/gowitness/getting-started/your-first-scan/running-your-first-scan) — for basic command syntax.
+- [Understanding Output Formats](https://docs.sensepost.com/gowitness/getting-started/setup-and-configuration/understanding-output-formats) — how to manage scan data.
+
+---
+
+## Summary
+Tackling initial setup problems early improves your gowitness experience and scan reliability. By verifying dependencies, permissions, and network access, you can quickly resolve common blockers. Utilize logging and reporting commands to gain insight into failures and adjust your configuration accordingly.
+
+For persistent issues, refer to the community and GitHub issues at [https://github.com/sensepost/gowitness](https://github.com/sensepost/gowitness) or seek support through relevant forums.
+
+
+---
