@@ -3,4 +3,263 @@ title: "Upgrading, Merging, and Converting Reports"
 description: "Tackle real-world maintenance tasks: migrate reports between versions, merge datasets from multiple scans, and convert between SQLite and JSON Lines. This guide ensures your data remains portable and useful."
 ---
 
-*This page will automatically be generated from the codebase*
+# Upgrading, Merging, and Converting Reports
+
+Manage your gowitness scan report data effortlessly by migrating old databases to the latest version, merging multiple datasets, and converting between supported storage formats. This guide empowers you with practical workflows and command usage to keep your report data portable, consistent, and ready for analysis.
+
+---
+
+## 1. Workflow Overview
+
+### What This Guide Helps You Accomplish
+- Seamlessly migrate gowitness v2 SQLite databases to the v3 format to unlock new features and compatibility.
+- Combine multiple SQLite report databases into a single consolidated database for easier management.
+- Convert reports between SQLite and JSON Lines formats to suit your workflow needs.
+
+### Prerequisites
+- gowitness installed on your system (refer to [Installing gowitness](https://github.com/sensepost/gowitness/blob/main/docs/getting-started/getting-ready/installing-gowitness.mdx)).
+- Source report files (v2 or v3 SQLite files, or JSON Lines files) available locally.
+- Basic command-line proficiency.
+
+### Expected Outcomes
+- You will produce v3-compatible SQLite databases from older versions.
+- You will have merged multiple SQLite files into one unified database.
+- You will convert report data files between SQLite and JSON Lines formats.
+
+### Time Estimate
+- Migration: Up to a few minutes depending on database size.
+- Merging: Minutes, depending on number and size of databases.
+- Conversion: Minutes, depending on file size.
+
+### Difficulty Level
+- Intermediate: Familiarity with CLI commands and file paths is expected.
+
+---
+
+## 2. Step-by-Step Instructions
+
+### A. Migrating a gowitness v2 SQLite Database to v3
+
+This process updates and restructures a v2 database to the latest v3 schema, ensuring compatibility and access to new features.
+
+#### Steps:
+
+1. Identify your v2 SQLite database file. The migration command only works on databases from v2 containing an `urls` table.
+2. Run the migrate command specifying your source v2 file:
+
+   ```sh
+   gowitness report migrate -s /path/to/gowitnessv2.sqlite3
+   ```
+
+3. The output will be a new file alongside the source, named `<originalname>.v3-migrated.sqlite3`. This is your upgraded v3 database.
+4. Use the new database in your reporting or as input for other commands.
+
+#### Expected Results:
+- New v3 SQLite database created with migrated data.
+- Fields not present in v2 will remain unset.
+
+#### Tips:
+- Ensure the source file really is a v2 database (the migrate tool verifies this).
+- Backup your original database before migrating.
+
+---
+
+### B. Merging Multiple SQLite Databases into One
+
+Combine results from multiple scan databases for a unified view.
+
+#### Steps:
+
+1. Prepare your source database files, either individually or within a directory.
+2. Use the merge command specifying one or more source files or a source directory, and the output file:
+
+   ```sh
+   # Merging multiple files
+   gowitness report merge --source-file db1.sqlite3 --source-file db2.sqlite3 --output-file merged.sqlite3
+
+   # Merging all SQLite DBs in a directory
+   gowitness report merge --source-path ./databases --output-file merged.sqlite3
+   ```
+
+3. The command will read each source, verify its schema, and transfer data into the single output database.
+4. After completion, `merged.sqlite3` contains the combined reports of all inputs.
+
+#### Expected Results:
+- Output SQLite file with merged records from all valid source databases.
+
+#### Decisions:
+- Use `--source-file` to list several precise files.
+- Use `--source-path` for bulk directories to automatically include valid DBs.
+
+#### Best Practices:
+- Confirm source files are valid SQLite databases.
+- Avoid duplicate files in source input.
+- Use the merged DB as your new reporting source.
+
+---
+
+### C. Converting Between SQLite and JSON Lines Formats
+
+Change your report data format based on your tooling or preference.
+
+#### Steps:
+
+1. Identify your source report file and desired output file with appropriate extension:
+   - SQLite databases use `.sqlite3`
+   - JSON Lines files use `.jsonl`
+
+2. Run the convert command with source and destination:
+
+   ```sh
+   # Convert SQLite DB to JSON Lines
+   gowitness report convert --from-file report.sqlite3 --to-file report.jsonl
+
+   # Convert JSON Lines to SQLite DB
+   gowitness report convert --from-file report.jsonl --to-file report.sqlite3
+   ```
+
+3. The tool determines the conversion direction based on file extensions.
+
+4. Upon completion, the output file will hold the equivalent data in the chosen format.
+
+#### Expected Results:
+- JSON Lines representation is a plaintext line-delimited JSON file for easy processing.
+- SQLite databases offer a structured relational storage.
+
+#### Tips:
+- Ensure source and destination files are not the same.
+- Supported extensions are `.sqlite3` and `.jsonl` only.
+- Conversion preserves all loaded result data.
+
+---
+
+## 3. Examples & CLI Usage
+
+### Migrating a v2 Database
+
+```sh
+gowitness report migrate -s ~/gowitness_old_v2.sqlite3
+```
+
+### Merging Databases from a Directory
+
+```sh
+gowitness report merge --source-path ./gowitness_databases --output-file gowitness_merged.sqlite3
+```
+
+### Converting JSON Lines to SQLite
+
+```sh
+gowitness report convert --from-file gowitness.jsonl --to-file gowitness.sqlite3
+```
+
+### Converting SQLite to JSON Lines
+
+```sh
+gowitness report convert --from-file gowitness.sqlite3 --to-file gowitness.jsonl
+```
+
+---
+
+## 4. Troubleshooting & Tips
+
+### Common Issues
+
+- **Migration command fails due to invalid database:** Ensure the source file is a valid v2 database containing the `urls` table.
+- **Merge reports no databases found:** Verify your source directory or file paths and confirm files are valid SQLite databases.
+- **Conversion errors:** Check file extensions are correct and distinct.
+- **File permission errors:** Confirm read/write permissions on source and output locations.
+
+### Best Practices
+
+- Always backup original report files before migrating or merging.
+- Use descriptive output file names to avoid accidental overwrite.
+- After converting or merging, validate your results list using `gowitness report list`.
+
+### Performance Considerations
+
+- Large databases may take more time to migrate or merge.
+- Batch processing during merges optimizes resource usage; avoid interrupting.
+
+### Alternative Approaches
+
+- For viewing results quickly, consider generating an HTML report or running the web UI server.
+- Use JSON Lines format for easy scripting integration.
+
+---
+
+## 5. Next Steps & Related Content
+
+- Learn how to generate detailed static HTML reports: [Generating and Viewing Reports](https://github.com/sensepost/gowitness/blob/main/docs/guides/reporting-and-results/generating-and-viewing-reports.mdx)
+- Validate and explore scan results interactively: [Validating and Viewing Results](https://github.com/sensepost/gowitness/blob/main/docs/getting-started/your-first-scan/validating-results.mdx)
+- Use the web UI to browse and analyze scans: `gowitness report server` command
+- Extend your scanning by integrating results from Nessus or Nmap and merging those results
+
+---
+
+## Appendices
+
+### Command Summary
+
+| Command                    | Purpose                                         | Example Usage                                            |
+|----------------------------|-------------------------------------------------|----------------------------------------------------------|
+| `gowitness report migrate` | Upgrade v2 SQLite to v3                         | `gowitness report migrate -s gowitnessv2.sqlite3`       |
+| `gowitness report merge`   | Merge multiple v3 SQLite DBs                    | `gowitness report merge --source-path . --output-file merged.sqlite3` |
+| `gowitness report convert` | Convert between SQLite and JSON Lines           | `gowitness report convert --from-file gowitness.jsonl --to-file gowitness.sqlite3` |
+
+### Related Commands
+- `gowitness report list`: Summarize contents of a report file
+- `gowitness report generate`: Produce static HTML reports
+- `gowitness report server`: Run interactive web UI
+
+---
+
+By mastering these report management commands, you will maintain efficient workflows, consistent data handling, and robust reporting capabilities with gowitness.
+
+---
+
+# Command Help Examples
+
+```bash
+$ gowitness report migrate -h
+
+Usage:
+  gowitness report migrate -s <source v2 database> [flags]
+
+Flags:
+  -s, --source string   A gowitness v2 SQLite database file to migrate to v3
+
+Examples:
+  gowitness report migrate -s ~/gowitnessv2.sqlite3
+```
+
+```bash
+$ gowitness report merge -h
+
+Usage:
+  gowitness report merge [flags]
+
+Flags:
+      --output-file string    The output SQLite database file (required)
+      --source-file strings   List of source SQLite files to merge
+      --source-path string    Source directory containing SQLite databases
+
+Examples:
+  gowitness report merge --source-file db1.sqlite3 --source-file db2.sqlite3 --output-file out.sqlite3
+  gowitness report merge --source-path ./databases --output-file merged.sqlite3
+```
+
+```bash
+$ gowitness report convert -h
+
+Usage:
+  gowitness report convert --from-file <source> --to-file <destination> [flags]
+
+Flags:
+      --from-file string   The file to convert from (required)
+      --to-file string     The file to convert to (required). Use .sqlite3 or .jsonl extensions
+
+Examples:
+  gowitness report convert --from-file gowitness.sqlite3 --to-file gowitness.jsonl
+  gowitness report convert --from-file gowitness.jsonl --to-file gowitness.sqlite3
+```
